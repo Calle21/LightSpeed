@@ -1,6 +1,7 @@
 module Nova.Types where
 
 import Data.Map.Strict (Map)
+import Data.Set (Set)
 import Prelude hiding (getLine)
 
 data Binding = Binding {locals  :: [Binding],

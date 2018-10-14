@@ -4,11 +4,13 @@ import CLang.Parse.Util
 import CLang.Types
 
 parseUnion :: SpecialParse
-parseUnion (m:ms, path, y:ys) =
+parseUnion (setup, path, y:ys) =
   let (ln,xs) = theLine y path
-  in if xs `match` aTypeName >=> one isEqual >=> listof2 (Punct ',') isEnd aType
-     then let (name, _:desc) = isEqual `break` xs
-              name'          = gets `map` name
-              typed          = trep `map` desc
-          in (m {types = insert name' typed (types m)} : ms, ys)
-     else pError ln filename "Couldn't parse union declaration"
+  in if xs `match` aTypeName >=> one isEqual >=> one isStartParen >=> listof2 (Punct ',') (one isEndParen) aType >=> isEnd
+     then let name        = gets $ head xs
+              (vars, xs') = if xs !! 1 == (_, Reserved "=")
+                            then ("", drop 2 xs)
+                            else (gets $ xs !! 1, drop 3 xs)
+              desc        = trep `map` xs'
+          in (insertType (Type (name, vars, desc)) setup ln path, ys)
+     else pError ln path "Couldn't parse union declaration"

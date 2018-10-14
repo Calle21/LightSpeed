@@ -104,6 +104,8 @@ isComma :: TokP
 isComma (_, Punct ',') = True
 isComma _              = False
 
+isConstr = isModS
+
 isEndParen :: TokP
 isEndParen (_, Punct ')') = True
 isEndParen _              = False
@@ -124,6 +126,11 @@ isInfixDecl _                = False
 isInt :: TokP
 isInt (_, PInt _) = True
 isInt _           = False
+
+isModS :: TokP
+isModS (_, Type _)    = True
+isModS (_, Vartype _) = True
+isModS _              = False
 
 isName :: TokP
 isName (_, Name _) = True
@@ -206,10 +213,11 @@ theLine (Line ln xs) _       = (ln, xs)
 theLine (Indent ys) filename = pError (getLine $ head ys) filename "Unexpected indentation"
 
 trep :: Tok -> String
-trep (_, Name s)    = s
-trep (_, Punct ',') = "|"
-trep (_, Type s)    = s
-trep (_, Vartype s) = s
+trep (_, Name s)        = s
+trep (_, Punct ',')     = "|"
+trep (_, Reserved "->") = "|"
+trep (_, Type s)        = s
+trep (_, Vartype s)     = s
 
  -- Parsing
 

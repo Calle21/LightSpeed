@@ -1,4 +1,8 @@
 module Nova.Parse.InsertType (insertType) where
 
-insertType :: Setup -> Type -> Setup
-insertType (m:ms) (tname,tvars,tdesc) = m {types = insert t $ types m} : ms
+import Nova.Ubi
+
+insertType :: Type -> Setup -> Int -> FilePath -> Setup
+insertType t setup@(m:ms) ln path = case checkType setup t of
+                                      Nothing -> m {types = Set.insert t $ types m} : ms
+                                      Just s  -> pError ln path ("Bad Type : " ++ s)

@@ -3,6 +3,7 @@ module Nova.Ubi where
 import Data.Char (isLower, isUpper)
 import Data.List(find, insertBy, intercalate, isPrefixOf, partition, sortBy)
 import Data.Ord (comparing)
+import qualified Data.Set as Set
 import Data.Word (Word)
 import Nova.Error
 import Nova.Lex(lexline)

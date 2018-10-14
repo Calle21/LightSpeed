@@ -1,2 +1,2 @@
-Bool = no, yes
-Comparison = lt, eq, gt
+Bool = no -> yes
+Comparison = lt -> eq -> gt

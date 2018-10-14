@@ -3,40 +3,14 @@ module Nova.Parse.Type (parseType) where
 parseType :: SpecialParse
 parseType (setup, path, y:ys) =
   let (ln,xs) = theLine y path
-  in case aTypeName >=> one isEqual of
-       Just xs' -> let tname        = gets `map` (dropUntil isEqual xs)
-                       (ttoks, ys') = getTs xs'
-                   in case checkType $ gets `map` ttoks of
-                        Right t -> (insertType setup t, ys')
-                        
-                        Left s  -> pError ln path ("Bad type: " ++ s)
-       Nothing  -> pError ln path "Bad type name"
-
-
-if tail xs `match` one isType >=> oneOrNone isVartype >=> one (is Keyword "=") >=> oneOrMore isTypeLang
-then let (thetype, _:desc) = (is $ Keyword "=") `break` (tail xs)
-     in 
-else pError ln filename "Couldn't parse type declaration"
-  replace :: LTok -> String
-  replace (_, Name s)    = s
-  replace (_, Punct _)   = "|"
-  replace (_, Type s)    = s
-  replace (_, Vartype s) = s
-  updateType :: String -> [String] -> Setup
-  updateType name desc =
-    let (e:es) = setup
-        newt   = insert name desc (types e)
-        newf   = enumFNs . records . constructors $ fns e
-          where
-          enumFNs, records, constructors :: FNMap -> FNMap
-          constructors = id
-          records      = id
-          enumFNs t | enum desc = foldlWI makeEnum t (everyOther desc)
-                    | otherwise = t
-            where
-            enum :: [String] -> Bool
-            enum desc = listof1' "|" names
-            makeEnum :: Map String Code -> String -> Map String Code
-            makeEnum t i name = insert string {- Int name = i -} t
-    in e {types = newt, fns = newf} : es
-
+  in if xs `match` aTypeName >=> one isEqual
+     then let name        = gets $ head xs
+              (vars, xs') = if xs !! 1 == (_, Reserved "=")
+                            then ("", drop 2 xs)
+                            else (gets $ xs !! 1, drop 3 xs)
+              (desc, ys') = getDesc ln xs'
+          in (insertType (Type (name, vars, desc)) setup ln path, ys')
+     else pError ln path "Couldn't parse type declaration"
+  where
+  getDesc :: Int -> [Tok] -> ([String], [Indent])
+  getDesc = undefined
