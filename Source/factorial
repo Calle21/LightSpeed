@@ -1,0 +1,1 @@
+(Natural Int n) ! = if n.zero then 1 else n * (n - 1) !

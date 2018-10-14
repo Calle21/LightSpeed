@@ -1,0 +1,1 @@
+break when (Bool <- E p) ({E} seq) = span !! p on (seq)

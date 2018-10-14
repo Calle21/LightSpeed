@@ -1,0 +1,3 @@
+length of ({E} seq) = seq.end - seq.start
+length of (List E ls) = if ls.null then 0
+                                   else 1 + length of ls.cdr

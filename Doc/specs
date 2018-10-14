@@ -1,0 +1,5 @@
+"archs"              = Strings
+"constant-inline"    = yes | no
+"micro-computations" = yes | no
+"reuse-samename"     = yes | no
+"tc"                 = yes | no

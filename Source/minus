@@ -1,0 +1,16 @@
+(Int a) - (Int b) = intermediate Int
+                    (sub #a #b)
+
+(Float a) - (Float b) = intermediate Float
+                        (sub #a #b)
+
+(Int a) - (Float b) = a = ~ a the Float
+                      intermediate Float
+                      (sub #a #b)
+
+(Float a) - (Int b) = b = ~ b the Float
+                      intermediate Float
+                      (sub #a #b)
+
+(Char a) - (Char b) = intermediate Char
+                      (sub #a #b)

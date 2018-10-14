@@ -1,0 +1,7 @@
+seqwrite ({E} seq, [E] arr, Int start, Int size)
+  write (i = seq.start, j = start, arr = arr)
+    if
+     i == seq.end  -> (arr, j)
+     j == size     -> error "Past end of array"
+      else
+      write (i + 1, j + 1, set arr`j` to seq`i`)

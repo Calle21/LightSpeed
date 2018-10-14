@@ -1,0 +1,32 @@
+format (String s, {String} args)
+  numargs = length of args
+  len = loop (i = 0, len = 0, s = (~ s) the Sequence)
+          c = s[i]
+          if
+           c == '{' -> s      = cdr s
+                       (s0,s) = span digit on s
+                       if
+                        car s != '}' -> error "Expected a } after {"
+                        null s0      -> error "Expected digit after {"
+                         else
+                         s = cdr s
+                         d = (~ s0) the Int
+                         if d < numargs then lens = strlen \ args[d]
+                                             loop (i + 2 + length of s0, len + lens)
+                           else error "Not that many arguments"
+           c.null   -> len + 1
+            else
+            loop (i + 1, len + 1)
+  if numargs.zero
+    s
+    else
+    unbind numargs
+    write (arr = array len the String, i0 = 0, i1 = 0)
+      c = s[i0]
+      if
+       c == '{' -> (d,i0) = readint (arr, i0 + 1)
+                   (arr,i1) = strwrite (args[d], arr, i1)
+                   write (arr, i0 + 1, i1)
+       c.null   -> arr
+        else
+        write (set arr[i1] to c, i0 + 1, i1 + 1)

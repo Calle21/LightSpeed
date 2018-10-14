@@ -1,0 +1,7 @@
+reverse (List E ls)
+  rec (prev = void the List E, next = ls)
+    if next.null
+      prev
+      else
+      rec (prev = set next.cdr to prev
+           next = next.cdr)

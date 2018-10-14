@@ -1,0 +1,15 @@
+fold ({E} seq) with (A <- (A,E) f) from left starting (A start)
+  end = seq.end
+  rec (i = seq.start, start = start)
+    if i == end
+      start the A
+      else
+      rec (i + 1, f (start, seq[i]))
+
+fold ({E} seq) with (A <- (E,A) f) from right starting (A start)
+  start0 = seq.start
+  rec (i = seq.end, start = start)
+    if i == start0
+      start the A
+      else
+      rec (i - 1, f (seq[i], start))

@@ -1,0 +1,8 @@
+take (Int n) from ({E} seq)
+  set seq.end to seq.start + n
+
+take (Int n) from (List E ls)
+  if n == 0
+    void
+    else
+    ls.car : take (n - 1) from ls.cdr

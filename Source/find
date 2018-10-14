@@ -1,0 +1,8 @@
+find (R thing) in ({E} seq) with (R <- E fn)
+  end = seq.end
+  find (i = seq.start)
+    if
+     i            == end   -> fail
+     fn #r seq[i] == thing -> #r
+      else
+      find (i + 1)

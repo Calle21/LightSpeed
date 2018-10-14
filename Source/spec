@@ -1,0 +1,9 @@
+spec (String name)
+  case of name
+    "constant-inline"    -> yes
+    "micro-computations" -> yes
+    "tc"                 -> yes
+    otherwise
+    ""
+
+  \\ Conformant

@@ -1,0 +1,10 @@
+conc (Array {E} seqs, Int size)
+  len = rec (i = 0, len = 0)
+          if i == size
+            len
+            else rec (i + 1, len + seqs`i`.length)
+  build (newseq = seq len the {E}, i = 0, j = 0)
+    if i == size
+      newseq
+      else (newseq, j) = seqwrite (seqs`i`, newseq.array, j, len)
+           build (newseq, i + 1, j)

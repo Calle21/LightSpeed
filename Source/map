@@ -1,0 +1,7 @@
+map (R <- E fn) on ({E} seq)
+  end = seq.end
+  rec (newseq = seq, i = seq.start)
+    if i == end
+      newseq
+      else
+      set newseq[i] to fn seq[i]

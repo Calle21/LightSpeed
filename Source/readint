@@ -1,0 +1,6 @@
+read int from (String s, Int i) = loop (sum = 0, i = i)
+  c = s[i]
+  if c is digit
+    loop (sum = sum * 10 + make c digit, i + 1)
+    else
+    (sum,i)    

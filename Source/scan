@@ -1,0 +1,7 @@
+scan ([E] arr) with (S f (S,E)) from left starting (S start)
+  rec (ret = array arr.size the [S], i = 0, start = start)
+    if i == arr.size
+      ret
+      rec (set ret[i] to #r (f (start, arr[i]))
+           i + 1
+           #r)

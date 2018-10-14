@@ -1,0 +1,7 @@
+take while (Bool <- E p) ({E} seq)
+  end = seq.end
+  rec (newend = seq.start)
+    if not seq[newend].p | newend == end
+     set seq.end to newend
+     else
+     rec (newend + 1)

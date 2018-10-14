@@ -1,0 +1,8 @@
+postfix ! ?
+prefix ~ !!
+infixr 9 << && ||
+infixr 8 ^
+infixl 7 * /
+infixl 6 + -
+infixr 5 :
+infixl 4 => == ~~

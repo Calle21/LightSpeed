@@ -1,0 +1,11 @@
+(Int a) < (Int b) = intermediate Bool
+                    (less #a #b)
+
+(Int a) < (Int b)
+  (a < b the Bool, b)
+
+(Bool prev, Int a) < (Int b)
+  (prev & (a < b the Bool), b)
+
+(Bool prev, Int a) < (Int b)
+  prev & (a < b the Bool)

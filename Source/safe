@@ -1,0 +1,3 @@
+safe (Fail | A s) = if s = s
+                      s
+                      else error "Apparently not safe"

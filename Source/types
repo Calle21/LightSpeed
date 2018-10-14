@@ -1,0 +1,40 @@
+type Access     = unsigned
+type Bool       = unsigned 1
+type Char       = unsigned 8
+type Comparison = lt | eq | gt
+type Fail       = fail
+type Float      = floating
+type Int        = signed
+synonym 
+union Maybe A   = A, Fail
+
+struct Cons E
+    E      car
+    List E cdr
+
+union List E = Cons E, Void
+
+
+type Map KE = map (Map KE left
+                   K      key
+                   E      elt
+                   Map KE right) | Void
+
+struct Runtime
+    List SpecBind specials
+
+type Set E = set (Set E left
+                  E     elt
+                  Set E right) | Void
+
+struct Sequence E
+    Array E array
+    Int     start
+    Int     end
+
+seq (Int n) = sequence (array (n), 0, n)
+
+struct Stack E
+    Array E array
+    Int     size
+    Int     fill

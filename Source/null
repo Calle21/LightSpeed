@@ -1,0 +1,5 @@
+null (Char c) = c == '\0' the Bool
+
+null (List e) = e == void the Bool
+
+null (Map KE m) = m == void the Bool

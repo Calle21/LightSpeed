@@ -1,0 +1,32 @@
+1of2 ((A a, B _)) = a
+2of2 ((A _, B b)) = b
+
+1of3 ((A a, B _, C _)) = a
+2of3 ((A _, B b, C _)) = b
+3of3 ((A _, B _, C c)) = c
+
+1of4 ((A a, B _, C _, D _)) = a
+2of4 ((A _, B b, C _, D _)) = b
+3of4 ((A _, B _, C c, D _)) = c
+4of4 ((A _, B _, C _, D d)) = d
+
+1of5 ((A a, B _, C _, D _, E _)) = a
+2of5 ((A _, B b, C _, D _, E _)) = b
+3of5 ((A _, B _, C c, D _, E _)) = c
+4of5 ((A _, B _, C _, D d, E _)) = d
+5of5 ((A _, B _, C _, D _, E e)) = e
+
+1of6 ((A a, B _, C _, D _, E _, F _)) = a
+2of6 ((A _, B b, C _, D _, E _, F _)) = b
+3of6 ((A _, B _, C c, D _, E _, F _)) = c
+4of6 ((A _, B _, C _, D d, E _, F _)) = d
+5of6 ((A _, B _, C _, D _, E e, F _)) = e
+6of6 ((A _, B _, C _, D _, E _, F f)) = f
+
+1of7 ((A a, B _, C _, D _, E _, F _, G _)) = a
+2of7 ((A _, B b, C _, D _, E _, F _, G _)) = b
+3of7 ((A _, B _, C c, D _, E _, F _, G _)) = c
+4of7 ((A _, B _, C _, D d, E _, F _, G _)) = d
+5of7 ((A _, B _, C _, D _, E e, F _, G _)) = e
+6of7 ((A _, B _, C _, D _, E _, F f, G _)) = f
+7of7 ((A _, B _, C _, D _, E _, F _, G g)) = g

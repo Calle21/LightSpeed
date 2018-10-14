@@ -1,0 +1,7 @@
+drop while (Bool <- E p) ({E} seq)
+  end = seq.end
+  rec (newstart = seq.start)
+    if not seq[newstart].p | newstart == end
+      set seq.start to newstart
+      else
+      rec (newstart + 1)

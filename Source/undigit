@@ -1,0 +1,4 @@
+undigit (Char c)
+  if digit (c)
+    ~ (c - '0') the Int
+    else fail

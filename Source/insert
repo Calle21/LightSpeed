@@ -1,0 +1,11 @@
+insert (K key, E elt) into (Map KE map)
+  if map.null
+    map (void, key, elt, void)
+    else
+    if
+     key < #k map.key -> set map.left  to insert (key, elt) into map.left
+     key > #k         -> set map.right to insert (key, elt) into map.right
+      else
+      set map.elt to elt
+
+update (K key, E elt) of (Map KE map) with (E <- E f)

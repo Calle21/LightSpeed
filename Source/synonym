@@ -1,0 +1,3 @@
+Void = ()
+SafeArray E = (Array E, Int)
+String = [Char]
