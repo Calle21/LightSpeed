@@ -1,7 +1,0 @@
-(C <- B f0) << (B <- A f1) = arg -> f0 (f1 arg)
-
-(Bool <- A f0) && (Bool <- A f1) = arg -> arg.f0 & arg.f1
-
-(Bool <- A f0) || (Bool <- A f1) = arg -> arg.f0 | arg.f1
-
-!! (Bool <- A f) = arg -> not (f (arg))
