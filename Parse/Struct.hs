@@ -4,7 +4,7 @@ import Nova.Types
 import Nova.Parse.Util
 
 parseStruct :: SpecialParse
-parseStruct (m:ms, path, y:ys) =
+parseStruct (setup, path, y:ys) =
   let (ln:xs) = theLine y path
   in if xs `match` aTypeName >=> isEnd
      then let tname         = gets `map` xs

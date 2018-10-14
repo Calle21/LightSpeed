@@ -100,8 +100,8 @@ data Module = Module {autotags :: [([String],String)],
                       bindings :: [Binding],
                       chains   :: [(String,String)],
                       fixity   :: Map String Fixity,
-                      tags     :: Map String Type BindPat Code
-                      types    :: Map [String] [String]}
+                      tags     :: Map String Type BindPat Code,
+                      types    :: Set Type}
               deriving (Read, Show)
 
 type MTag = [([String],String)]
@@ -211,14 +211,25 @@ getS (Vartype s)  = s
 type TokP = Tok -> Bool
 
 
-type Type = [String]
+newtype Type = Type (String, String, [String]) deriving (Read, Show)
+
+gettname, gettvars :: Type -> String
+gettname (Type (n, _, _)) = n
+gettvars (Type (_, v, _)) = v
+
+gettdesc :: Type -> [String]
+gettdesc (Type (_, _, d)) = d
+
+instance Ord Type where
+  compare :: Type -> Type -> Ordering
+  compare (Type (n0, _, _)) (Type (n1, _, _)) = compare n0 n1
 
 checkType -> Type -> Maybe Type
 checkType xs = undefined
 
 getTupleElements :: Type -> [Type]
 getTupleElements t = if tuple t then split "," $ init $ tail t
-                      else error "Called on single"
+                     else error "Called on single"
 
 mkFNtype :: Type -> Type -> Type
 mkFNtype ret param = ret ++ ["<-"] ++ param
@@ -250,3 +261,5 @@ typeConcat xs = "(" : intercalate [","] (safeGetTupleElements `map` xs) ++ [")"]
 vartype :: Type -> Bool
 vartype [[c]] = isUpper c
 vartype _   = False
+
+data TypeCheck = 

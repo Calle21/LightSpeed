@@ -1,3 +1,17 @@
+module Nova.Parse.Type (parseType) where
+
+parseType :: SpecialParse
+parseType (setup, path, y:ys) =
+  let (ln,xs) = theLine y path
+  in case aTypeName >=> one isEqual of
+       Just xs' -> let tname        = gets `map` (dropUntil isEqual xs)
+                       (ttoks, ys') = getTs xs'
+                   in case checkType $ gets `map` ttoks of
+                        Right t -> (insertType setup t, ys')
+                        
+                        Left s  -> pError ln path ("Bad type: " ++ s)
+       Nothing  -> pError ln path "Bad type name"
+
 
 if tail xs `match` one isType >=> oneOrNone isVartype >=> one (is Keyword "=") >=> oneOrMore isTypeLang
 then let (thetype, _:desc) = (is $ Keyword "=") `break` (tail xs)

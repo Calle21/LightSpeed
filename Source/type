@@ -1,7 +1,13 @@
 Access     = unsigned
+
 Char       = unsigned 8
+
+Either LR = left L | right R
+
 Fail       = fail
+
 Float      = floating
+
 Int        = signed
 
 Map KE = map (Map KE left
