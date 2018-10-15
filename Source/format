@@ -1,32 +1,29 @@
-format (String s, {String} args)
-  numargs = length of args
-  len = loop (i = 0, len = 0, s = (~ s) the Sequence)
-          c = s[i]
+format (String s, [String] args) the String
+  len = s = strseq s
+        loop (i = 0, len = 0)
+          c = s.i
           if
-           c == '{' -> s      = cdr s
-                       (s0,s) = span digit on s
+           c == '|' -> (s0,s) = span digit on (cdr s)
                        if
-                        car s != '}' -> error "Expected a } after {"
-                        null s0      -> error "Expected digit after {"
+                        car s /= '|' -> error "Expected another |"
+                        empty s0     -> loop (i + 2, len + 1)
                          else
-                         s = cdr s
-                         d = (~ s0) the Int
-                         if d < numargs then lens = strlen \ args[d]
-                                             loop (i + 2 + length of s0, len + lens)
-                           else error "Not that many arguments"
-           c.null   -> len + 1
+                         if #n (readint s0) < args.size
+                           loop (i + 2 + length of s0, len + strlen args.#n)
+                           else
+                           error "Not that many arguments"
+           nul c    -> len
             else
             loop (i + 1, len + 1)
-  if numargs.zero
+  if args.size == 0
     s
     else
-    unbind numargs
-    write (arr = array len the String, i0 = 0, i1 = 0)
-      c = s[i0]
+    write (s1 = string len, i0 = 0, i1 = 0)
+      c = s.i0
       if
-       c == '{' -> (d,i0) = readint (arr, i0 + 1)
-                   (arr,i1) = strwrite (args[d], arr, i1)
-                   write (arr, i0 + 1, i1)
-       c.null   -> arr
+       c == '|' -> (n,i0) = readint (s, i0 + 1)
+                   (s1,i1) = strwrite (args.n, s1, i1)
+                   write (s1, i0 + 1, i1)
+       nul c    -> s1
         else
-        write (set arr[i1] to c, i0 + 1, i1 + 1)
+        write (set s1.i1 to c, i0 + 1, i1 + 1)

@@ -1,12 +1,11 @@
 map (R <- E fn) on ({E} seq)
-  end = seq.end
   rec (newseq = seq, i = seq.start)
-    if i == end
+    if i == seq.end
       newseq
       else
-      set newseq[i] to fn seq[i]
+      set newseq.i to fn seq.i
 
 map (R <- E fn) on (List E ls)
-  typecase ls
-    Void   -> void
-    List E -> set (ls.car, ls.cdr) to (fn ls.car, map fn on ls.cdr)
+  if ls
+    set ls.(car, cdr) to (fn ls.car, map fn on ls.cdr)
+    else void

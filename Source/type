@@ -23,4 +23,3 @@ Maps E = maps (Maps E left
 Set E = set (Set E left
              E     elt
              Set E right) | Void
-

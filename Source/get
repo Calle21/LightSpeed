@@ -1,0 +1,23 @@
+get (Int n, Array A arr) the A = lw (~ arr + ~ n)
+
+get (Int n, [A] sarr) the A
+  if n >= sarr.size
+    error "Index out of bounds"
+    else
+    get (n, arr)
+
+get (Int n, {E} seq) the E = if n >= length of seq then error "Index out of bounds"
+                               else
+                               get (seq.array, n + seq.start)
+
+get (Int n, List E ls) the E
+  if ls
+    if n == 0
+      ls.car
+      else get (n - 1, ls.cdr)
+    else
+    error "Index out of bounds"
+
+get ([Int] ns, Matrix m)
+  if all (0 <= _ < _) (ns,m.dimensions)
+    get (product ns, m.array)

@@ -87,29 +87,31 @@ gettk :: Lex -> Token
 gettk (_, _, t) = t
 
 
+type LChain = [(String, String)]
+
+type LFix = Map String Fixity
+
+data Lib = Lib {autotags :: [([String],String)],
+                bindings :: [Binding],
+                chains   :: [(String,String)],
+                fixity   :: Map String Fixity,
+                tags     :: Map String Type BindPat Code,
+                types    :: Set Type}
+         deriving (Read, Show)
+
+type Library = (String, Lib)
+
+type LTag = [([String],String)]
+
+type LTyp = Map [String] [String]
+
+type LVal = Map Identifier [Binding]
+
+
 data Local = Local {bind        :: Binding,
                     annotations :: [String])
            | Locals [Binding]
            deriving (Read, Show)
-
-
-type MChain = [(String, String)]
-
-type MFix = Map String Fixity
-
-data Module = Module {autotags :: [([String],String)],
-                      bindings :: [Binding],
-                      chains   :: [(String,String)],
-                      fixity   :: Map String Fixity,
-                      tags     :: Map String Type BindPat Code,
-                      types    :: Set Type}
-              deriving (Read, Show)
-
-type MTag = [([String],String)]
-
-type MTyp = Map [String] [String]
-
-type MVal = Map Identifier [Binding]
 
 
 data Pat = PatK String
@@ -149,7 +151,7 @@ instance Ord Prim where
   compare (Unsigned w)  (Signed i)    = compare (fromIntegral w) i
 
 
-type Setup = [(String,Module)]
+type Setup = [Library]
 
 
 type SpecialParse -> (Setup, FilePath, [Indent]) -> (Setup, [Indent])

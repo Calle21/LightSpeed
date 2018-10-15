@@ -1,6 +1,11 @@
-read int from (String s, Int i) = loop (sum = 0, i = i)
-  c = s[i]
-  if c is digit
-    loop (sum = sum * 10 + make c digit, i + 1)
-    else
-    (sum,i)    
+readint (String s, Int i) the (Int,Int) = rec (sum = 0, i = i)
+  c = s.i
+  if digit c
+    rec (sum * 10 + safe (undigit c), i + 1)
+    else (sum, i)
+
+readint ({Char} seq) the Int = rec (sum = 0, i = seq.start)
+  if
+   i == seq.end     -> sum
+   digit c# seq.i -> rec (sum * 10 + safe (undigit c), i + 1)
+    else sum

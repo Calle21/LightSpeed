@@ -2,16 +2,20 @@ Cons E
     E      car
     List E cdr
 
+Matrix E
+    Array E array
+    [Int]   dimensions
+
 Runtime
     List SpecBind specials
     ...
-
+ 
 Sequence E
-    [E] array
-    Int start
-    Int end
+    Array E array
+    Int     start
+    Int     end
 
 Stack E
-    [E] array
-    Int size
-    Int fill
+    Array E array
+    Int     size
+    Int     fill

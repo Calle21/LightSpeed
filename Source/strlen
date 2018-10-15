@@ -1,4 +1,4 @@
 strlen (String s) = rec (len = 0)
-  if s[len].null
+  if nul s.len
     len
     else rec (len + 1)

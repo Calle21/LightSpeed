@@ -1,8 +1,8 @@
-postfix ! ?       \\ factorial, is
-prefix ~ !!       \\ converse, not
-infixr 9 << && || \\ compose, and, or
-infixr 8 ^        \\ exp
-infixl 7 * /      \\ times, over
-infixl 6 + -      \\ plus, minus
-infixr 5 :        \\ cons
-infixl 4 => == ~~ \\ isin, equal, almostequal
+postfix ! ?          \\ factorial, is
+prefix ~ !!          \\ converse, not
+infixr 9 << && ||    \\ compose, and, or
+infixr 8 ^           \\ exp
+infixl 7 * /         \\ times, over
+infixl 6 + -         \\ plus, minus
+infixr 5 :           \\ cons
+infixl 4 => == ~~ /= \\ isin, equal, almostequal, notequal
