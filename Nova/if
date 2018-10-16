@@ -1,0 +1,1 @@
+(A arg) `if` (Bool c) = if c then arg else fail
