@@ -172,20 +172,18 @@ gets :: Tok -> String
 gets (_, t) = getS t
 
 
-data Token = AChar       Char
-           | AFloat      Float
-           | AInt        Int
-           | AString     String
-           | HashI       Int
-           | HashBind    String
-           | Keyword     String
-           | Op          String
-           | Punctuation Char
-           | Reserved    String
-           | Special     String
-           | Tag         String
-           | Type        String
-           | Vartype     String
+data Token = AChar         Char
+           | AFloat        Float
+           | AInt          Int
+           | AString       String
+           | Keyword       String
+           | Op            String
+           | Punctuation   Char
+           | Reserved      String
+           | Special       String
+           | Tag           String
+           | Type          String
+           | Vartype       String
            deriving (Read, Show)
 
 getC :: Token -> Char

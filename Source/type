@@ -1,25 +1,11 @@
-Access     = unsigned
+Access    = unsigned
 
-Char       = unsigned 8
+Char      = unsigned 8
 
 Either LR = left L | right R
 
-Fail       = fail
+Fail      = fail
 
-Float      = floating
+Float     = floating
 
-Int        = signed
-
-Map KE = map (Map KE left
-              K      key
-              E      elt
-              Map KE right) | Void
-
-Maps E = maps (Maps E left
-               String key
-               E      elt
-               Maps E right) | Void \\ ?
-
-Set E = set (Set E left
-             E     elt
-             Set E right) | Void
+Int       = signed

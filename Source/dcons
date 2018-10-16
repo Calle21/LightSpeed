@@ -1,0 +1,9 @@
+(E elt) ; (Doubly E right)
+  if right
+    set right.left to dcons (elt, right)
+    else
+    dcons (elt, void)
+
+(E elt0) ; (E elt1) = elt ; dcons (elt1, void)
+
+dcons (E elt, Doubly right) = doubly (void, elt, right)

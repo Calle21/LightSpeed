@@ -32,13 +32,19 @@ leX (path, s) = (path, loop 1 1 s)
         | p $ head inp = (n, inp)
         | otherwise    = loop (n + 1) p (tail inp)
     token :: Char -> (Token, Int, String)
-    token c = if c `elem` ".,()[]{}" then (Punct c, 1, tail inp)
+    token c = if punctuation c then (Punct c, 1, tail inp)
               else case c of
                 '"'  -> getString "" 1 (tail inp)
-                '\'' -> let (p,n) = inp =~ "^'([^\\\\']|(\\\\([nt\\\\']|x[0-9a-fA-F]{2})))'" :: (Int,Int)
-                        in if p == (-1)
-                           then lError col line path "Bad character token"
-                           else ((AChar $ read $ take n inp), n, drop n inp)
+                '\'' -> let (s, inp')                       = span (symchar `or` punctuation) $ tail inp
+                            c | length s == 2               = s !! 1
+                              | s `elem` (fst `map` charwords) = fromJust $ s `lookup` charwords
+                              | s        == ""              = if null inp then lError col line path "Expected something"
+                                                                          else if head inp == ' ' then ' '
+                                                                                                  else lError col line path "Hmm..."
+                              | s =~ "^[0-9a-zA-Z]{2}$"     = let [c0,c1] = charHex `map` tail s
+                                                              in toEnum $ c0 * 16 + c1
+                              | otherwise                   = lError col line path ("Couldn't read character : '" ++ s)
+                        in (AChar c, 1 + length s, inp')
                 _    -> let (s, inp')                                      = span symChar inp
                             sym | null s                                   = lError col line path ("Illegal character : " ++ [c])
                                 | reserved s                               = Reserved s
@@ -46,17 +52,22 @@ leX (path, s) = (path, loop 1 1 s)
                                 | types s                                  = Type s
                                 | s =~ ("^[\\\\" ++ specialChars ++ "]+$") = Opname s
                                 | s =~ "^-?\\d+$"                          = AInt $ read s
-                                | s =~ "^-?\\d+\\.\\d+$"                   = AFloat $ read s
-                                | s =~ "^#\\d+$"                           = HashI $ read $ tail s
-                                | head s == '#' && names (tail s)          = HashBind $ tail s
-                                | s =~ "^\\*[A-Z0-9]+\\*$"                 = Special s
                                 | s =~ "^[A-Z]+$"                          = Vartype s
+                                | s =~ "^-?\\d+\\.\\d+$"                   = AFloat $ read s
+                                | s =~ "^\\*[A-Z0-9]+\\*$"                 = Special s
+                                | s =~ "^`[a-z]+`$"                        = Opname $ tailinit s
                                 | s =~ "^[a-zA-Z_][a-zA-Z0-9_]*:$"         = Tag $ init s
                                 | otherwise                                = lError col line path ("Bad token : " ++ s)
                         in (sym, length s, inp')
       where
-      names, types :: String -> Bool
-      names s = s =~ "^[a-z0-9]*$" && any isLower s
+      punctuation :: Char -> Bool
+      punctuation c = c `elem` "()[]{}.,@#"
+      charwords = [("nul",'\NUL'),
+                   ("tab", '\t'),
+                   ("newline", '\n'),
+                   ("space", ' ')]
+      names, types :: String ->     Bool
+      names s = s =~ "^[a-z0-9]*'*$" && any isLower s
       types s = s =~ "^[A-Z][a-zA-Z0-9]*$" && not (all isUpper s)
       getString :: String -> Int -> String -> (Token, Int, String)
       getString acc n s

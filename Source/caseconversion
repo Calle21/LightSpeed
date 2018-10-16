@@ -1,0 +1,5 @@
+casediff = 'a' - 'A'
+
+upcase (Char c)   = if lower c then c + casediff else c
+
+downcase (Char c) = if upper c then c - casediff else c

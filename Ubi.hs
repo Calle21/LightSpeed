@@ -15,6 +15,12 @@ isAnnotation :: String -> Bool
 isAnnotation s = s `elem` ["mutable",
                            "static"]
 
+charHex :: Char -> Int
+charHex c | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
+          | c >= 'a' && c <= 'z' = fromEnum c - fromEnum 'a'
+          | c >= 'A' && c <= 'Z' = fromEnum c - fromEnum 'A'
+          | otherwise            = error "Not numerable"
+
 delete' :: (a -> Bool) -> [a] -> [a]
 delete' pred (x:xs) | pred x    = xs
                     | otherwise = x : delete' pred xs
@@ -36,6 +42,11 @@ mapWI = rec 0
 none :: (a -> Bool) -> [a] -> Bool
 none pred = all (not . pred)
 
+infixr 2 `or`
+
+or :: (a -> Bool) -> (a -> Bool) -> a -> Bool
+f0 `or` f1 = (\x -> f0 x || f1 x)
+
 putFirst :: (a -> Bool) -> [a] -> [a]
 putFirst pred ls = if any pred ls
                    then find pred ls : delete pred ls
@@ -50,7 +61,8 @@ specialFiles = ["autotag",
                 "tag",
                 "type",
                 "union",
-                "use"]
+                "use",
+                "vstruct"]
 
 split :: (Eq a) => a -> [a] -> [[a]]
 split elt xs = let (f,r) = break (==elt) xs
@@ -59,3 +71,6 @@ split elt xs = let (f,r) = break (==elt) xs
 
 tags :: String -> Bool
 tags s = s =~ "[a-z]+"
+
+tailinit :: [a] -> [a]
+tailinit = init . tail

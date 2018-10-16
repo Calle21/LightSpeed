@@ -20,7 +20,7 @@ compare (Char c0) with (Char c1) the Comparison
     eq
 
 compare (String s0) with (String s1) the Comparison = rec (i = 0)
-  case of compare #c s0[i] with s1[i]
+  case of compare #c s0.i with s1.i
     lt -> lt
     gt -> gt
     eq -> if #c == '\0'
@@ -34,7 +34,7 @@ compare ({E} seq0) with ({E} seq1) the Comparison
       if i1 == seq1.end
         eq else lt
       else
-      case of compare seq0[i0] with seq1[i1]
+      case of compare seq0.i0 with seq1.i1
         lt  -> lt
         gt  -> gt
         eq  -> rec (i0 + 1, i1 + 1)

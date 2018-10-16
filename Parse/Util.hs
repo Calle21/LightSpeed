@@ -93,11 +93,6 @@ listOf2 sep end cont xs = case cont xs of
 is :: Token -> TokP
 is t = \(_, x) -> x == t
 
-infixr 2 `or`
-
-or :: TokP -> TokP -> TokP
-or f0 f1 = (\x -> f0 x || f1 x)
-
  -- Predicates
 
 isComma :: TokP

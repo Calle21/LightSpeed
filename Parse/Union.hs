@@ -11,6 +11,6 @@ parseUnion (setup, path, y:ys) =
               (vars, xs') = if xs !! 1 == (_, Reserved "=")
                             then ("", drop 2 xs)
                             else (gets $ xs !! 1, drop 3 xs)
-              desc        = trep `map` xs'
-          in (insertType (Type (name, vars, desc)) setup ln path, ys)
+              desc        = trep `map` tailinit xs'
+          in (insertType setup (name, vars, desc) ln path, ys)
      else pError ln path "Couldn't parse union declaration"
