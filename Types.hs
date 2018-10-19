@@ -178,6 +178,7 @@ data Token = AChar         Char
            | AString       String
            | Keyword       String
            | Op            String
+           | Option        String
            | Punctuation   Char
            | Reserved      String
            | Special       String

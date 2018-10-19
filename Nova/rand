@@ -1,0 +1,3 @@
+rand (Int lo, Int hi) = ... the Int
+
+rand (Float lo, Float hi) = ... the Float

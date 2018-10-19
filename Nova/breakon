@@ -1,1 +1,1 @@
-break on (E elt) ({E} seq) = span !! elt ? on (seq)
+break on (E elt) ({E} seq) = span !! (elt ?) on (seq)

@@ -1,0 +1,3 @@
+right 4 ({E} seq) `subseq` (Int start, Int end) where start <= end
+                                                      end   <= length of seq
+  seq.(start,end) := (#s seq.start + start, #s + end)

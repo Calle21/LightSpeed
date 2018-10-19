@@ -1,0 +1,2 @@
+hello world (String name)
+  putstr "Hello world `0`." [name]

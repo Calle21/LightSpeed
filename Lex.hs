@@ -55,6 +55,7 @@ leX (path, s) = (path, loop 1 1 s)
                                 | s =~ "^[A-Z]+$"                          = Vartype s
                                 | s =~ "^-?\\d+\\.\\d+$"                   = AFloat $ read s
                                 | s =~ "^\\*[A-Z0-9]+\\*$"                 = Special s
+                                | s =~ "^%[a-z]{2..}%$"                    = Option $ tailinit s
                                 | s =~ "^`[a-z]+`$"                        = Opname $ tailinit s
                                 | s =~ "^[a-zA-Z_][a-zA-Z0-9_]*:$"         = Tag $ init s
                                 | otherwise                                = lError col line path ("Bad token : " ++ s)
@@ -67,7 +68,7 @@ leX (path, s) = (path, loop 1 1 s)
                    ("newline", '\n'),
                    ("space", ' ')]
       names, types :: String ->     Bool
-      names s = s =~ "^[a-z0-9]*'*$" && any isLower s
+      names s = s =~ "^[a-z0-9]*'?$" && any isLower s
       types s = s =~ "^[A-Z][a-zA-Z0-9]*$" && not (all isUpper s)
       getString :: String -> Int -> String -> (Token, Int, String)
       getString acc n s

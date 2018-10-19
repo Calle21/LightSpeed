@@ -2,6 +2,11 @@ Cons E
     E      car
     List E cdr
 
+Delay A
+    A <- () fn
+    Bool    done
+    A       result
+
 Matrix E
     Array E array
     [Int]   dimensions

@@ -1,0 +1,2 @@
+right 2 (Int a) ^ (Int b) = intermediate
+                            (exp #a #b)

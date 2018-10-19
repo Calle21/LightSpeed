@@ -1,2 +1,0 @@
-subseq(Sequence E seq, Int start, Int end)
-  set (seq.start, seq.end) to (start,end)

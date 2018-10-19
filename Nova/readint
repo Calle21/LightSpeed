@@ -1,8 +1,8 @@
-readint (String s, Int i) the (Int,Int) = rec (sum = 0, i = i)
-  c = s.i
+readint (String s, Int* i) the Int = rec (sum' = 0, n = *i)
+  c = s.n
   if digit c
-    rec (sum * 10 + safe (undigit c), i + 1)
-    else (sum, i)
+    rec (sum' * 10 + safe (undigit c), n + 1)
+    else *i := n >> sum'
 
 readint ({Char} seq) the Int = rec (sum = 0, i = seq.start)
   if

@@ -1,11 +1,11 @@
 Almost (Int n, Float f) = n0 = round f
-                              n == n0
+                          n == n0
 
 Almost (Float f, Int n) = n0 = round f
-                              n == n0
+                          n == n0
 
 Almost (Float f0, Float f1) = (n0,n1) = (round f0, round f1)
-                                  n0 == n1
+                              n0 == n1
 
 Alphabetic (Char c) = lower c | upper c
 

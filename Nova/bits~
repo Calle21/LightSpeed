@@ -22,7 +22,7 @@
 (Prim A a) `clear` (Int b) where 0 <= b < bitsize a = intermediate A
                                                       (and #a (not (exp 2 #b)))
 
-(Mut Prim A a) `decode` (Int b) where 0 <= < bitsize a
+(Prim A *a) `decode` (Int b) where 0 <= < bitsize a
   (dec b) = intermediate (A,A)
             (and #a (sub (exp 2 b) 1)),
             (sr #a #b)
