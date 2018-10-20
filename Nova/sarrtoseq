@@ -1,0 +1,1 @@
+sarrtoseq ([E] sarr) = seq sarr.size

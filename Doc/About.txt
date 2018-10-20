@@ -1,0 +1,3 @@
+This language is a functional language, I think.
+
+A key feature of functional languages is immutability. However, if a reference to an object is never made after a "mutation", should it not be safe to reuse the old structure? This is a key premise of the Nova language. In fact, it may be forbidden to mutate objects that have additional references made to them after the mutation has taken place. In such cases, another variable, or a copy of the object must be made, explicitly?

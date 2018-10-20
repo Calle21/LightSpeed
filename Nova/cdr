@@ -1,4 +1,4 @@
 cdr ({E} seq) = if #s seq.start == seq.end
-                  error "cdr of empty sequence : |0|" {show seq}
+                  error "cdr of empty sequence : `0`" [show seq]
                   else
-                  set seq.start to #s + 1
+                  seq.start := #s + 1

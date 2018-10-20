@@ -1,0 +1,8 @@
+find (E elt) in (Map KE map)
+  if map
+    if map.elt == elt
+      map
+      else
+      find elt in #(map.left `failor` map.right)
+    else
+    fail

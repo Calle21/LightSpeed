@@ -1,1 +1,1 @@
-cinit ({E} seq) = cdr _ << init _ \ seq
+cinit ({E} seq) = (cdr _ << init _) \ seq

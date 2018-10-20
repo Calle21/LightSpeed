@@ -8,7 +8,7 @@ local rec1 (Int i, Int end, Bool <- A pred, Array arr) the Bool
 all (Bool <- (A,B)) ([A] sarr0, [B] sarr1) = rec2 (pred, 0, 0, sarr0.size, sarr1.size, sarr0, sarr1)
 
 local rec2 (Bool <- (A,B) pred, Int i0, Int i1, Int end0, Int end1, Array A arr0, Array B arr1)
-        if end0 - i0 /= end1 - i1 then error "Sequences of different lengths"
+        if (end0 - i0) /= (end1 - i1) then error "Sequences of different lengths"
           else rec (i0 = i0, i1 = i1)
                  if
                   i0 == end0              -> yes

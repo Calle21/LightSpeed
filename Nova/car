@@ -1,1 +1,1 @@
-car ({E} seq) = seq[0]
+car ({E} seq) = seq.0

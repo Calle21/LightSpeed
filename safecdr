@@ -1,0 +1,4 @@
+safecdr ({E} seq) if #s seq.start == seq.end
+                    seq
+                    else
+                    seq.start := #s + 1

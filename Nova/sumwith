@@ -1,0 +1,4 @@
+sum ([E] sarr) with (A <- E fn)
+  fold sarr with (sum elt -> sum + fn elt) from left starting 0
+
+sum ({E} seq) with (A <- E fn) = sum (seqtosarr seq) with fn
