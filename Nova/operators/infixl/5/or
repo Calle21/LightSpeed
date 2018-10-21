@@ -1,0 +1,2 @@
+(A a) `or` (B b) where zero #(sizeof A & sizeof B) = intermediate A
+                                                     (return (or #a #b))

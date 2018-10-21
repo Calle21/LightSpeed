@@ -1,0 +1,4 @@
+(R <- (R,E) fn) `foldl` (S seq) = if empty seq
+                                    error "Empty sequence"
+                                    else
+                                    fold (cdr seq) with fn from left starting (car seq)

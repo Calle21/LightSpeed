@@ -1,0 +1,4 @@
+(A a) `decode` (Int b) where zero (sizeof A)
+  intermediate (A,A)
+  (tuple (and #a (sub (exp 2 #b) 1))
+         (sr #a #b))

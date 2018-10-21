@@ -1,32 +1,8 @@
-sum ([E] sarr) = fold sarr with (+) from left starting 0
-sum ({E} seq)  = sum (seq.array, length of seq)
+sum ({E} seq)  = fold seq with (+) from left starting 0
 
+sum ([E] tab) = fold tab with (+) from left starting 0
 
- \\ deprecated
-
-sum of ({Int} ls) = rec (sum = 0, ls = ls)
-  if ls == void
-    sum
-    else
-    rec (ls.car + sum, ls.cdr)
-
-sum of ({Float} ls = rec (sum = 0, ls = ls)
-  if ls == void
-    sum
-    else
-    rec (ls.car + sum, ls.cdr)
-
-sum of ([Int] arr) = rec (i = 0, sum = 0)
-  if i == arr.size
-    sum
-    else
-    rec (i + 1, sum + arr[i])
-
-sum of ([Float] arr) = rec (i = 0, sum = 0)
-  if i == arr.size
-    sum
-    else
-    rec (i + 1, sum + arr[i])
-
-product of ({N} ls)  = fold ls  with * from left starting 0
-product of ([N] arr) = fold arr with * from left starting 0
+sum (<List E> ls)
+  null ls
+    0
+    ls.elt + sum ls.nxt

@@ -1,0 +1,2 @@
+(A a) `shiftr` (Int b) where zero (sizeof A) = intermediate A
+                                               (return (sr #a #b))
