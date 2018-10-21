@@ -9,7 +9,7 @@ parse files = do
   let (specfiles,novafiles)  = partition (\(path,_) -> path `elem` specialFiles) files
   let ([usefile],specfiles') = partition (\(path,_) -> path == "use")            specfiles
   setup <- parseUse usefile
-  let setup' = foldl parseSpecialFile [] $ sortBy (comparing fst) specfiles' -- puts "autotag", "chain" and "ops" before "tag"
+  let setup' = foldl parseSpecialFile [] $ sortBy (comparing fst) specfiles' -- puts "autotag" and "chain" before "tag"
   return $ foldl parseFile setup' novafiles
 
 parseSpecialFile :: Setup -> (FilePath, Indent) -> Setup
@@ -17,9 +17,8 @@ parseSpecialFile setup (path,Indent ys) = case path of -- Compiler sorts out oth
                                             "autotag" -> foldit setup parseAutotag ys
                                             "chain"   -> foldit setup parseChain   ys
                                             "enum"    -> foldit setup parseEnum    ys
-                                            "ops"     -> foldit setup parseOps     ys
                                             "struct"  -> foldit setup parseStruct  ys
-                                            "synonym" -> foldit setup parseSynonum ys
+                                            "synonym" -> foldit setup parseSynonym ys
                                             "tag"     -> foldit setup parseTag     ys
                                             "type"    -> foldit setup parseType    ys
                                             "union"   -> foldit setup parseUnion   ys

@@ -1,0 +1,1 @@
+(R <- A fn) $ (A arg) = fn arg

@@ -1,3 +1,4 @@
-safe (Fail | A s) = if s = s
-                      s
-                      else error "Apparently not safe"
+safe (<Fail | A> s) = typecase s
+                        A -> s
+                        otherwise
+                        error "Apparently not safe"

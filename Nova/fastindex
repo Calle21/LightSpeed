@@ -1,0 +1,2 @@
+fastindex (<Array E> arr, Int i) = intermediate E
+                                   (return (lw (add #arr (unsigned #i))))

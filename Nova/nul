@@ -1,1 +1,1 @@
-nul (Char c) the Bool = c == '\0'
+nul (Char c) = (c == 'nul) the Bool

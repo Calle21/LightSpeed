@@ -1,29 +1,21 @@
-module CLang.ToString where
+module Nova.ToString where
 
-import CLang.Lex(Token(..))
-import CLang.Indent(Indent(..), getColumn)
-import Data.List(intercalate)
+import Nova.Ubi
 
 tokenString :: Token -> String
 tokenString t = case t of
-                  Hash n      -> '#' : show n
-                  Infix s     -> '`' : s ++ "`"
-                  InfixDecl e -> case e of
-                                   Right p  -> 'R' : show p
-                                   Left  p  -> 'L' : show p
-                  Keyword s   -> s
-                  Name s      -> s
-                  Nested ss   -> "." `intercalate` ss
-                  Opname s    -> s
-                  Punct c     -> [c]
-                  Special s   -> s
-                  TChar c     -> show c
-                  TFloat f    -> show f
-                  TInt n      -> show n
-                  TString s   -> show s
-                  Type s      -> s
-                  Typevar s   -> s
-                  Underscore  -> "_"
+                  Keyword s     -> s
+                  Opname s      -> s
+                  Option s      -> s
+                  Punctuation c -> [c]
+                  Reserved s    -> s
+                  Special s     -> s
+                  TokenChar c   -> show c
+                  TokenFloat f  -> show f
+                  TokenInt n    -> show n
+                  TokenString s -> show s
+                  Type s        -> s
+                  Vartype s     -> s
 
 indentString :: Indent -> String
 indentString (Line _ xs) = pred (fst $ head xs) `replicate` ' ' ++ " " `intercalate` ((tokenString . snd) `map` xs) ++ "\n"
@@ -32,3 +24,7 @@ indentString (Indent ys) | getColumn ys == 1 = separate $ indentString `map` ys
   separate :: [String] -> String
   separate (x:y:xs) = x ++ (if head y /= ' ' then "\n" else "") ++ separate (y:xs)
   separate (x:_)    = x
+
+putIndent :: DirM
+putIndent file = case file of
+                   Indented y -> putStrLn (indentString y)

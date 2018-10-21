@@ -1,0 +1,9 @@
+length of ({E} seq) = seq.end - seq.start
+
+length of ([E] tab) = tab.size
+
+length of (<List E> ls)
+  null ls
+    0
+    else
+    1 + length of ls.nxt

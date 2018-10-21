@@ -1,1 +1,7 @@
 car ({E} seq) = seq.0
+
+car (<List E> ls)
+  null ls
+    error "Car of empty list"
+    else
+    elt @ ls

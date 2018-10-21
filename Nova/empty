@@ -1,0 +1,8 @@
+empty ({E} seq) = seq.start == seq.end the Bool
+
+empty ([E] tab) = zero tab.size
+
+empty (<List E> ls) = typecase ls
+                        Void -> yes
+                        otherwise
+                        no

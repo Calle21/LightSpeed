@@ -6,3 +6,11 @@ find (R thing) in ({E} seq) with (R <- E fn)
      fn #r seq[i] == thing -> #r
       else
       find (i + 1)
+find (E elt) in (Map KE map)
+  if map
+    if map.elt == elt
+      map
+      else
+      find elt in #(map.left `failor` map.right)
+    else
+    fail

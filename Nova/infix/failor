@@ -1,6 +1,0 @@
-right 2
-
-((A | Fail) a) `failor` ((A | Fail) b)
-  typecase a
-    A    -> a
-    Fail -> b

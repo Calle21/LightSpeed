@@ -1,0 +1,3 @@
+zero (Int i) = i == 0 the Bool
+
+zero (Float f) = f == 0 the Bool

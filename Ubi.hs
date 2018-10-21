@@ -34,6 +34,16 @@ deleteIf pred ls = if any pred ls
 dropUntil :: (a -> Bool) -> [a] -> [a]
 dropUntil pred = dropWhile (not . pred)
 
+type DirM = File -> IO ()
+
+mapDirM :: DirM -> Directory -> IO ()
+mapDirM act (x:xs) = case x of
+                       File cf    -> do putStrLn (fst cf)
+                                        act (snd cf)
+                       Folder dir -> do mapDirM act dir
+                                        mapDirM act xs
+mapDirM _   []     = return ()
+
 mapWI :: (Int -> a -> b) -> [a] -> [b]
 mapWI = rec 0
  where rec i f (x:xs) = f i x : rec (i + 1) f xs

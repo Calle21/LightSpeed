@@ -1,11 +1,8 @@
-lookup (K key) in ({(K,E)} aseq)
-  end = seq.end
-  find (i = seq.start)
-    if
-     i           == end -> fail
-     seq[i].1of2 == key -> seq[i].2of2
-      else
-      find (i + 1)
+lookup (K key) in (S seq)
+  if res = until !! (fail ?) seq
+    2of2 res
+    else
+    fail
 
 lookup (K key) in (Map KE map)
   ...

@@ -4,13 +4,8 @@ import Nova.Indent
 import Nova.Syntax
 import Nova.Ubi
 
-lex :: [FilePath] -> IO [(FilePath, [Lex])]
-lex paths = do
-  ss <- readFile `mapM` paths
-  return $ leX `map` (paths `zip` ss)
-
-leX :: (FilePath, String) -> (FilePath, [Lex])
-leX (path, s) = (path, loop 1 1 s)
+lex :: CompDir
+lex (_, (path, Undone s)) = Lexed $ loop 1 1 s
   where
   loop :: Int -> Int -> String -> [Lex]
   loop col line inp
@@ -57,7 +52,6 @@ leX (path, s) = (path, loop 1 1 s)
                                 | s =~ "^\\*[A-Z0-9]+\\*$"                 = Special s
                                 | s =~ "^%[a-z]{2..}%$"                    = Option $ tailinit s
                                 | s =~ "^`[a-z]+`$"                        = Opname $ tailinit s
-                                | s =~ "^[a-zA-Z_][a-zA-Z0-9_]*:$"         = Tag $ init s
                                 | otherwise                                = lError col line path ("Bad token : " ++ s)
                         in (sym, length s, inp')
       where

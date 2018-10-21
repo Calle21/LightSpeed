@@ -1,4 +1,1 @@
-!! (Bool <- A f) = arg -> not (f (arg))
-
-not (Bool arg) = intermediate Bool
-                 (xor #arg 1)
+not (Bool arg) = arg `xor` 1

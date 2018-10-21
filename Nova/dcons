@@ -1,6 +1,6 @@
 (E elt) ; (Doubly E right)
   if right
-    set right.left to dcons (elt, right)
+    right.left := dcons (elt, right)
     else
     dcons (elt, void)
 

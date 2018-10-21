@@ -1,0 +1,2 @@
+string (Int len) = arr = array (len + 1) the String
+                   arr@len := 'nul

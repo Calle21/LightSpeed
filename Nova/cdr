@@ -1,4 +1,10 @@
 cdr ({E} seq) = if #s seq.start == seq.end
                   error "cdr of empty sequence : `0`" [show seq]
                   else
-                  seq.start := #s + 1
+                  start.seq := #s + 1
+
+cdr (<List E> ls)
+  null ls
+    error "cdr of empty list"
+    else
+    ls.nxt

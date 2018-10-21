@@ -1,0 +1,2 @@
+array (Int n) with (E elt) = arr = array n
+                             map (- -> elt) on arr the <Array E>

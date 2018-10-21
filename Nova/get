@@ -18,6 +18,12 @@ get (Int n, List E ls) the E
     else
     error "Index out of bounds"
 
-get ([Int] ns, Matrix m)
+index ([Int] ns, Matrix m)
   if all (0 <= _ < _) (ns,m.dimensions)
-    get (product ns, m.array)
+    index (rec (size = 1, i = ns.size - 1)
+             if minus i
+               0
+               else ns@i * size + rec (size * m.dimensions@i, i - 1)
+           m.array)
+    else
+    error "Some n out of bounds"

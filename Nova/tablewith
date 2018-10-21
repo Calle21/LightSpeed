@@ -1,0 +1,1 @@
+table (Int n) with (E elt) = (array n with elt, n)

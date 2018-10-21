@@ -1,26 +1,26 @@
 (Prim A a) `and` (Prim B b) = intermediate A
-                              (and #a #b)
+                              (return (and #a #b))
 
 (Prim A a) `or` (Prim B b)  = intermediate A
-                              (or #a #b)
+                              (return (or #a #b))
 
 (Prim A a) `xor` (Prim B b) = intermediate A
-                              (xor #a #b)
+                              (return (xor #a #b))
 
 (Prim A a) `shiftl` (Int b) = intermediate A
-                              (sl #a #b)
+                              (return (sl #a #b))
 
 (Prim A a) `shiftr` (Int b) = intermediate A
-                              (srl #a #b)
+                              (return (srl #a #b))
 
 (Prim A a) `shiftar` (Int b) = intermediate A
-                               (sra #a #b)
+                               (return (sra #a #b))
 
 (Prim A a) `set` (Int b) where 0 <= b < bitsize a = intermediate A
-                                                    (or #a (exp 2 #b))
+                                                    (return (or #a (exp 2 #b)))
 
 (Prim A a) `clear` (Int b) where 0 <= b < bitsize a = intermediate A
-                                                      (and #a (not (exp 2 #b)))
+                                                      (return (and #a (not (exp 2 #b))))
 
 (Ref (Prim A) a) `decode` (Int b) where 0 <= < bitsize a
   (dec b) = intermediate (A,A)
@@ -30,3 +30,7 @@
 
 `not` (Prim A a) = intermediate A
                    (not #a)
+(Prim A c) `decode` (Int a) where 0 <= a < bitsize c
+  intermediate (Prim A, Prim A)
+  (tuple (and #c (sub (exp 2 a) 1))
+         (sr #c #a))

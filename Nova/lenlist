@@ -1,4 +1,0 @@
-lenlist (List E ls) = rec (len = 0, ls = ls)
-  if ls.null
-    len
-    rec (len + 1, ls.cdr)

@@ -33,6 +33,30 @@ data Code = Array      [String] [Code]
           deriving (Eq, Ord, Read, Show)
 
 
+type CompFile = (FilePath, File)
+
+type CompFN   = (Setup, CompFile) -> File
+
+type Directory = [DirFile]
+
+data DirFile  = Folder Directory
+              | File   CompFile
+              deriving (Read, Show)
+
+mapDir :: CompFN -> Directory -> Directory
+mapDir fn (x:xs) = case x of
+                     File cf    -> File (fst cf, fn cf) : mapDir fn xs
+                     Folder dir -> Folder (mapDir fn dir) : mapDir fn xs
+mapDir _  []     = []
+
+
+data File = Undone   String
+          | Lexed    [Lex]
+          | Indented Indent
+          | Parsed   ParseTree
+          | Compiled NIL
+
+
 data Fixity = Infixl Int | Infixr Int | Prefix | Postfix deriving (Read, Show)
 
 win :: (Fixity, Fixity) -> Either () ()
@@ -114,6 +138,14 @@ data Local = Local {bind        :: Binding,
            deriving (Read, Show)
 
 
+data NIL = Word     String
+         | Hash     String
+         | NILInt   Int
+         | NILFloat Float
+         | List     [NIL]
+         deriving (Read, Show)
+
+
 data Pat = PatK String
          | PatT Type
          deriving (Ord, Read, Show)
@@ -172,17 +204,16 @@ gets :: Tok -> String
 gets (_, t) = getS t
 
 
-data Token = AChar         Char
-           | AFloat        Float
-           | AInt          Int
-           | AString       String
-           | Keyword       String
-           | Op            String
+data Token = Keyword       String
+           | Opname        String
            | Option        String
            | Punctuation   Char
            | Reserved      String
            | Special       String
-           | Tag           String
+           | TokenChar     Char
+           | TokenFloat    Float
+           | TokenInt      Int
+           | TokenString   String
            | Type          String
            | Vartype       String
            deriving (Read, Show)

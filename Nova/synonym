@@ -1,5 +1,0 @@
-SafeArray E = (Array E, Int)
-
-String      = Array Char
-
-Void        = ()

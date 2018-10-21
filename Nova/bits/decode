@@ -1,4 +1,0 @@
-(Prim A c) `decode` (Int a) where 0 <= a < bitsize c
-  intermediate (Prim A, Prim A)
-  (tuple (and #c (sub (exp 2 a) 1))
-         (sr #c #a))
