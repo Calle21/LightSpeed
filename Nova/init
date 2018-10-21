@@ -1,5 +1,4 @@
-init of ({E} seq) = end = seq.end
-                    if end == seq.start
-                      error "init of empty list"
-                      else
-                      set seq.end to end - 1 \\ set is keyword ? special parse
+init ({E} seq) = if #e seq.end == seq.start
+                   error "Init of empty list"
+                   else
+                   seq.end := #e - 1

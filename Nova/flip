@@ -1,1 +1,1 @@
-flip (R <- (A,B) fn) = (a,b) -> fn (b,a)
+flip (R <- (A,B) fn) = (a, b -> fn (b,a))

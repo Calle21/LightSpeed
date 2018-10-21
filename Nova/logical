@@ -1,9 +1,0 @@
-(Bool a) & (Bool b)
-  if not a
-    a
-    else b
-
-(Bool a) | (Bool b)
-  if a
-    a
-    else b

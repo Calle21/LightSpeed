@@ -1,23 +1,28 @@
-fold ({E} seq) with (A <- (A,E) f) from left starting (A start) the A
-  recl (seq.end, seq.start, start)
+fold ({E} seq) with (R <- (R,E) fn) from left starting (R start)
+  rec (result = start, i = seq.start)
+    if i == seq.end
+      result
+      else rec (fn (result, seq@i), i + 1)
 
-local recl (Int stop, Int i, A end) the A
-        if i == stop
-          end
-          else
-          rec (i + 1, f (end, seq.i))
+fold ({E} seq) with (R <- (E,R) fn) from right starting (R start)
+  rec (result = start, i = seq.end)
+    if i == seq.start
+      result
+      else rec (fn (seq@ #i (i - 1), result), #i)
 
-fold ({E} seq) with (A <- (E,A) f) from right starting (A start) the A
-  recr (seq.start, seq.end - 1, start)
+fold ([E] tab) with (R <- (R,E) fn) from left starting (R start)
+  fold (tableseq tab) with (fn) from left starting (start)
 
-local recr (Int stop, Int i, A end) the A
-        if i < stop
-          end
-          else
-          rec (i - 1, f (seq.i, start))
+fold ([E] tab) with (R <- (E,R) fn) from right starting (R start)
+  fold (tableseq tab) with (fn) from right starting (start)
 
-fold (Array E arr, Int size) with (A <- (A,E) f) from left starting (A start) the A
-  recl (size, 0, start)
+fold (<List E> ls) with (R <- (R,E) fn) from left starting (R start)
+  null ls
+    start
+    else fold ls.nxt with (fn) from left starting (fn (start, ls.elt))
 
-fold (Array E arr, Int size) with (A <- (E,A) f) from right starting (A start) the A
-  recr (0, size - 1, start)
+fold (<List E> ls) with (R <- (E,R) fn) from right starting (R start)
+  null ls
+    start
+    else
+    fn (ls.elt, fold ls.nxt with (fn) from right starting (start))

@@ -1,9 +1,8 @@
-fibonacci (Natural Int n)
+fibonacci (Int n)
   if n < 2
     n
     else
     rec (a = 0, b = 1, n = n - 2)
-      c = a + b
       if n == 0
-        c
-        else rec (a = b, b = c, n = n - 1)
+        #c (a + b)
+        else rec (b, #c, n - 1)

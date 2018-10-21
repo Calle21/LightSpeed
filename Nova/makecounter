@@ -1,3 +1,4 @@
-makecounter (mutable Int start)
-  () -> set start to #s start + 1
-            #s
+makecounter ()
+  Int c = 0
+  do -> set c to #c c + 1
+        #c

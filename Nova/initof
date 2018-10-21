@@ -1,0 +1,8 @@
+init of (<List E> ls)
+  null ls
+    error "Init of empty list"
+    else
+    build (ls = ls)
+      null ls.nxt
+        void
+        else ls.elt : build ls.nxt

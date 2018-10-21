@@ -1,0 +1,1 @@
+(Bool <- A f0) && (Bool <- A f1) = arg -> f0 arg & f1 arg

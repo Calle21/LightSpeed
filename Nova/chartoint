@@ -1,5 +1,5 @@
-chartoint (Char c) the Int
-  if n = undigit c then n
+chartoint (Char c)
+  if i = undigit c then i
     else
     if
      'a' <= c <= 'z' -> ~ (c - 'a') + 10

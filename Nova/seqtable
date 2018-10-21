@@ -1,0 +1,1 @@
+seqtable ({E} seq) = 1of2 \ seqwrite (seq, table (length of seq), 0)

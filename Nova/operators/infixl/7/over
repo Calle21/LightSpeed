@@ -4,11 +4,11 @@
 (Float a) / (Float b) = intermediate Float
                         (div #a #b)
 
-(Int a) / (Float b) = a = ~ a the Float
+(Int a) + (Float b) = a = ~ a the Float
                       intermediate Float
                       (div #a #b)
 
-(Float a) / (Int b) = b = ~ b the Float
+(Float a) + (Int b) = b = ~ b the Float
                       intermediate Float
                       (div #a #b)
 
