@@ -1,0 +1,1 @@
+empty ({E} seq) = seq.start == seq.end the Bool

@@ -1,15 +1,18 @@
-module Nova.Test where
+module Main (main) where
 
-import Nova.Indent
-import Nova.Lex
-import Nova.List
-import Nova.ToString
-import Nova.Ubi
-import System.Directory (getCurrentDirectory)
+import Indent
+import Lex
+import List
+import Prelude hiding (lex)
+import System.Directory(getCurrentDirectory)
+import ToString
+import Type.DirFile(countFiles, mapDir, mapDirM)
 
 main :: IO ()
-main = do currentDir <- getCurrentDirectory
-          files <- getFiles currentDir
-          let lexed    = mapDir lex    files
-              indented = mapDir indent lexed
-          mapDirM putIndent indented
+main = do current <- getCurrentDirectory
+          files   <- getFiles current
+          putStrLn ("Reading " ++ show (countFiles files) ++ " files")
+          let lexed    = mapDir [] lex    files
+              indented = mapDir [] indent lexed
+          mapDirM writeIndent indented
+          putAllIndent current

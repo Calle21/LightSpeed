@@ -1,3 +1,0 @@
-error (String message, {String} args = {})
-  putstr \ format message args
-  throw top: void

@@ -1,0 +1,9 @@
+head of ({E} ls) = typecase ls
+                     Void     -> error "Empty list"
+                     <Cons E> -> ls.car
+
+head of ([E] tab) = ? empty tab -> error "Empty table"
+                    ? else      -> fastindex(tab.array,0)
+
+head of (<Sequence E> seq) = ? empty seq -> error "Empty sequence"
+                             ? else      -> fastindex(seq.array,0)

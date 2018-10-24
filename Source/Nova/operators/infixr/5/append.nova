@@ -1,0 +1,4 @@
+({E} ls0) ++ ({E} ls1)
+  void ls0 -> ls1
+    else ls0.car : ls0.cdr ++ ls1
+

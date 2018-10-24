@@ -1,0 +1,8 @@
+Methods:
+
+move (Movable obj) with (Float dx, Float dy)
+  obj.(xpos,ypos) := (obj.xpos + dx, obj.ypos + dy)
+
+Requires:
+
+Object

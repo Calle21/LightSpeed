@@ -1,34 +1,37 @@
-module Nova.Indent (indent) where
-
-import Nova.Type
-import Nova.Error
+module Indent (indent) where
+ 
+import Error
+import Type.CompFN
+import Type.File(File(Indented, Lexed))
+import Type.Indent
+import Type.Lex
+import Type.Tok
+import Type.Token(Token(Reserved, Punctuation))
 
 indent :: CompFN
-indent (_, (path, Lexed xs)) = Indented $ fst $ getIndent [] 1 xs
+indent _ (_, Lexed xs) = Indented $ fst $ getIndent [] 1 xs
   where
   getIndent :: [Indent] -> Int -> [Lex] -> (Indent, [Lex])
   getIndent acc level toks@(x:_) =
-    case compare (getcl x) level of
-      LT -> make acc toks
-      EQ -> let (y,toks') = iline [] (getln x) 0 toks
+    case compare (colOfLex x) level of
+      LT -> (Indent $ reverse acc, toks)
+      EQ -> let (y,toks') = aline [] (lineOfLex x) 0 toks
             in getIndent (y : acc) level toks'
-      GT -> let (y,toks') = getIndent [] (getcl x) toks
+      GT -> let (y,toks') = getIndent [] (colOfLex x) toks
                 acc'      = y : acc
-            in if null toks' || getcl (head toks') < level
-               then make acc' toks'
+            in if null toks' || colOfLex (head toks') < level
+               then (Indent $ reverse acc', toks')
                else getIndent acc' level toks'
-  getIndent acc _     _ = make acc []
-  make :: [Indent] -> [Lex] -> (Indent, [Lex])
-  make acc toks = (Indent $ reverse acc, toks)
+  getIndent acc _ _ = (Indent $ reverse acc, [])
 
-iline :: [Tok] -> Int -> Int -> [Lex] -> (Indent, [Lex])
-iline acc ln backs (x:xs)
-  | getln x == ln = if gettk x == Reserved "\\"
-                    then iline ((getcl x, Punct '(') : acc) ln (backs + 1) xs
-                    else iline ((getcl x, gettk x) : acc)   ln  backs      xs
-iline acc ln backs xs = (Line ln $ reverse (npunct backs acc), xs)
+aline :: [Tok] -> Int -> Int -> [Lex] -> (Indent, [Lex])
+aline acc ln backs (x:xs)
+  | lineOfLex x == ln = if tokOfLex x == Reserved "\\"
+                        then aline ((colOfLex x, Punctuation '(') : acc) ln (backs + 1) xs
+                        else aline ((colOfLex x, tokOfLex x)      : acc) ln  backs      xs
+aline acc ln backs xs = (Line ln $ npunct backs acc, xs)
   where
   npunct :: Int -> [Tok] -> [Tok]
-  npunct 0 toks = toks
-  npunct n ts = let c = getColumn $ head ts
-                in npunct (n - 1) $ (ln, c + 1, Punct ')') : toks
+  npunct 0 toks = reverse toks
+  npunct n toks = let c = colOfTok $ head toks
+                  in npunct (n - 1) $ (c + 1, Punctuation ')') : toks

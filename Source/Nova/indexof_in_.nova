@@ -1,0 +1,1 @@
+index of (E elt) in ({E} seq) = index of (elt) in (seq) with (id _)

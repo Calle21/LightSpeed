@@ -1,6 +1,5 @@
 module Nova.Libs (getLib, newlib) where
 
-import Nova.Ubi
 
 import qualified Data.Map as Map
 import System.Directory

@@ -1,0 +1,2 @@
+error (String message) = putln message
+                         throw -TOP- ()
