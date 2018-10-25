@@ -1,8 +1,8 @@
-module Types where
+module Type where
 
 import qualified Data.ByteString.Char8 as C
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
+import qualified Data.Set.Strict as Set
 import Ubi
 import Util(String')
 
@@ -11,8 +11,6 @@ import Util(String')
  -- BindPat
 
  -- Code
-
-type Code = ()
 
  -- CompFN
 
@@ -61,10 +59,6 @@ data File = Undone   C.ByteString
           | Compiled NIL
           deriving (Read, Show)
 
- -- FileWPath
-
-type FileWPath = (FilePath, File)
-
  -- Fixity
 
  -- Function
@@ -89,8 +83,6 @@ type Lib = ()
  -- Local
 
  -- NIL
-
-type NIL = ()
 
  -- Pat
 

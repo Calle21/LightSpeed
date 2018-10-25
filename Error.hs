@@ -1,4 +1,4 @@
-module Error (lError, pError) where
+module Error where
 
 import Util (format)
 

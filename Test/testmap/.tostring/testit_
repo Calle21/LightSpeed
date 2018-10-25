@@ -1,1 +1,0 @@
-testmap ( Char c , Int i ) = print ( ~ c + i )

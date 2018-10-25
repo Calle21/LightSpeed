@@ -1,18 +1,13 @@
 module List (getFiles) where
 
- -- import Control.Monad(filterM, liftM, (<=<))
 import qualified Data.ByteString.Char8 as C
-import Data.Time.Clock(UTCTime)
-import Type.DirFile(DirFile(Folder, File), Directory)
-import Type.File(File(Undone))
+import Types
 import Ubi
-import Util (isVisibleDirectory, listDirectory')
-import System.Directory(createDirectoryIfMissing, getModificationTime, removeFile)
-import System.FilePath.Posix(takeBaseName, takeExtension, takeFileName, (</>))
+import Util
 
 getFiles :: FilePath -> IO Directory
 getFiles dir = do contents <- listDirectory' dir
-                  let novafiles = filter (\p -> takeExtension p == ".nova")
+                  let novafiles = filter (\p -> takeExtension p == ".nova" || takeFileName p `elem` [".use",".chain"])
                                           contents
                       fp        = (dir </> ".tostring")
                   createDirectoryIfMissing False fp
@@ -31,7 +26,7 @@ getFiles dir = do contents <- listDirectory' dir
                   undones <- mapM (\path -> do bs <- C.readFile path
                                                return (File (path, Undone bs)))
                                    novafiles'
-                  return (map Folder subdirs ++ undones)
+                  return (map Folder (maps `zip` subdirs) ++ undones)
 
 deletes :: [FilePath] -> FilePath -> IO ()
 deletes new old = if old `elem` new

@@ -1,8 +1,9 @@
-module Nova.Libs (getLib, newlib) where
+module Libs (getLib, newlib) where
 
 
 import qualified Data.Map as Map
-import System.Directory
+import System.Directory (listDirectory, makeAbsolute)
+import Type.Lib
 
 getLib :: String -> IO Lib
 getLib s = do libs' <- libs

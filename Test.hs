@@ -1,18 +1,17 @@
-module Main (main) where
+module Main where
 
 import Indent
 import Lex
 import List
-import Prelude hiding (lex)
-import System.Directory(getCurrentDirectory)
 import ToString
-import Type.DirFile(countFiles, mapDir, mapDirM)
+import Types
+import Ubi
 
 main :: IO ()
 main = do current <- getCurrentDirectory
           files   <- getFiles current
           putStrLn ("Reading " ++ show (countFiles files) ++ " files")
-          let lexed    = mapDir [] lex    files
-              indented = mapDir [] indent lexed
+          let lexed    = mapDir [] novalex files
+              indented = mapDir [] indent  lexed
           mapDirM writeIndent indented
           putAllIndent current

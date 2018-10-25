@@ -1,112 +1,96 @@
-module Lex (lex) where
+module Lex where
 
-import qualified Data.ByteString.Char8 as Fast
- -- import Data.Char(isLower, isUpper)
- -- import Data.Function((&))
- -- import Data.List(isPrefixOf)
- -- import Data.Maybe(fromJust)
+import qualified Data.ByteString.Char8 as BS
 import Error
-import Indent
 import Syntax
-import Type.CompFN
-import Type.File(File(Lexed, Undone))
-import Type.Lex
-import Type.Token
+import Types
 import Ubi
-import Util(charHex, isHex, (|||), subseq, tailinit)
-import Prelude hiding (lex)
-import Text.Regex.PCRE((=~))
+import Util
 
-lex :: CompFN
-lex _ (path, Undone s) = Lexed $ loop 1 1 s
+novalex :: CompFN
+novalex _ (path, Undone s) = (Lexed $ loop 1 1 s, [])
   where
-  loop :: Int -> Int -> Fast.ByteString -> [Lex]
+  loop :: Int -> Int -> BS.ByteString -> [Tok2]
   loop col line inp
-    | Fast.null inp = []
-    | otherwise = case Fast.head inp of
+    | BS.null inp = []
+    | otherwise = case BS.head inp of
                     ' '  -> let (n, inp') = countUntil (/=' ') inp
                             in loop (col + n) line inp'
                     '\n' -> let (n, inp') = countUntil (/='\n') inp
                             in loop 1 (line + n) inp'
-                    c    -> if Fast.pack "\\\\" `Fast.isPrefixOf` inp then loop col line $ Fast.dropWhile (/='\n') inp
+                    c    -> if BS.pack "\\\\" `BS.isPrefixOf` inp then loop col line $ BS.dropWhile (/='\n') inp
                             else let (tok, len, inp') = token c
                                  in (col, line, tok) : loop (col + len) line inp'
     where
-    countUntil :: (Char -> Bool) -> Fast.ByteString -> (Int, Fast.ByteString)
+    countUntil :: (Char -> Bool) -> BS.ByteString -> (Int, BS.ByteString)
     countUntil p inp = loop 0
       where
       loop n
-        | n == inplen          = (n, Fast.empty)
-        | Fast.index inp n & p = (n, Fast.drop n inp)
+        | n == inplen          = (n, BS.empty)
+        | BS.index inp n & p = (n, BS.drop n inp)
         | otherwise            = loop (n + 1)
-      inplen = Fast.length inp
-    token :: Char -> (Token, Int, Fast.ByteString)
-    token c = if punctuation c then (Punctuation c, 1, Fast.tail inp)
+      inplen = BS.length inp
+    token :: Char -> (Tok, Int, BS.ByteString)
+    token c = if punctuation c then (Punctuation c, 1, BS.tail inp)
               else case c of
-                '"'  -> let start = Fast.tail inp
-                        in case Fast.elemIndex '"' start of
+                '"'  -> let start = BS.tail inp
+                        in case BS.elemIndex '"' start of
                              Nothing -> lError col line path "Couldn't find end of string"
-                             Just i  -> let sbs = Fast.take i start
-                                            s   = buildString sbs
-                                        in (TokenString s, length s, Fast.drop (i + 1) start)
-                '\'' -> let (bs, inp')                  = Fast.span (symChar ||| punctuation) (Fast.tail inp)
-                            s = Fast.unpack bs
+                             Just i  -> let sb = BS.take i start
+                                            s  = buildString sb
+                                            s' = BS.pack s
+                                        in (TokString s', BS.length s', BS.drop (i + 1) start)
+                '\'' -> let (bs, inp')                  = BS.span (symChar ||| punctuation) (BS.tail inp)
+                            s = BS.unpack bs
                             c | length s == 1           = head s
                               | s `elem` (fst `map` charwords) = fromJust $ s `lookup` charwords
-                              | s == ""                 = if Fast.null inp' then lError (col + 1) line path "Expected something"
-                                                                            else if Fast.head inp' == ' ' then ' '
+                              | s == ""                 = if BS.null inp' then lError (col + 1) line path "Expected something"
+                                                                            else if BS.head inp' == ' ' then ' '
                                                                                  else lError (col + 1) line path "Hmm..."
                               | s =~ "^[0-9a-zA-Z]{2}$" = getHexChar s
                               | otherwise               = lError col line path ("Couldn't read character : '" ++ s)
-                        in (TokenChar c, 1 + Fast.length bs, inp')
-                _    -> let (bs, inp')                                     = Fast.span symChar inp
-                            s = Fast.unpack bs
-                            sym | null s                                   = lError col line path ("Illegal character : " ++ [c])
-                                | reserved s                               = Reserved s
-                                | names s                                  = Keyword s
-                                | types s                                  = Type s
-                                | s =~ ("^[\\\\" ++ specialChars ++ "]+$") = Opname s
-                                | s =~ "^-?\\d+$"                          = TokenInt $ read s
-                                | s =~ "^[A-Z]+$"                          = Vartype s
-                                | s =~ "^-?\\d+\\.\\d+$"                   = TokenFloat $ read s
-                                | s =~ "^-[A-Z0-9]+-$"                     = Special $ tailinit s
-                                | s =~ "^%[a-z]{2..}%$"                    = Option  $ tailinit s
-                                | s =~ "^`[a-z]{2..}`$"                    = Opname  $ tailinit s
-                                | otherwise                                = lError col line path ("Bad token : " ++ s)
-                        in (sym, Fast.length bs, inp')
+                        in (TokChar c, 1 + BS.length bs, inp')
+                _    -> let (s', inp')             = BS.span symChar inp
+                            sym | BS.null s'       = lError col line path ("Illegal character : " ++ [c])
+                                | reserved s'      = Reserved s'
+                                | synKeyword s'    = Keyword s'
+                                | synType s'       = Type s'
+                                | synOpname s'     = Opname s'
+                                | synInt s'        = TokInt $ read $ BS.unpack s'
+                                | synVartype s'    = Vartype s'
+                                | synFloat s'      = TokFloat $ read $ BS.unpack s'
+                                | synSpecial s'    = Special $ tailinit' s'
+                                | synOption s'     = Option  $ tailinit' s'
+                                | synOpnameText s' = Opname  $ tailinit' s'
+                                | otherwise        = lError col line path ("Bad token : " ++ BS.unpack s')
+                        in (sym, BS.length s', inp')
       where
-      punctuation :: Char -> Bool
-      punctuation c = c `elem` "()[]{}.,@#$"
       charwords = [("nul"  ,   '\NUL'),
                    ("tab"  ,   '\t'),
                    ("newline", '\n'),
                    ("space",   ' ')]
-      names, types :: String -> Bool
-      names s = s =~ "^[a-z0-9]*'?$" && any isLower s
-      types s = s =~ "^[A-Z][a-zA-Z0-9]*$" && not (all isUpper s)
-      buildString :: Fast.ByteString -> String
-      buildString sbs = loop 0
+      buildString :: BS.ByteString -> String
+      buildString bs = loop 0
         where
         loop :: Int -> String
-        loop n | n == sbslen                = []
-               | sbs `Fast.index` n == '\\' = if n + 1 == sbslen then lError (col + n + 2) line path "String ended in \\"
-                                              else if elem (sbs `Fast.index` 1) "nt\\\""
-                                                   then (case sbs `Fast.index` 1 of
+        loop n | n                 == bslen = []
+               | bs `BS.index` n == '\\'  = if n + 1 == bslen then lError (col + n + 2) line path "String ended in \\"
+                                              else if (bs `BS.index` 1) `elem` "nt\\\""
+                                                   then (case bs `BS.index` 1 of
                                                            'n'  -> '\n'
                                                            't'  -> '\t'
                                                            '\\' -> '\\'
                                                            '"'  -> '"') : loop (n + 2)
-                                                   else if n + 2 == sbslen then lError (col + n + 3) line path "Oops..."
-                                                        else let s = Fast.unpack (subseq sbs (n + 1) (n + 3))
+                                                   else if n + 2 == bslen then lError (col + n + 3) line path "Oops..."
+                                                        else let s = BS.unpack (subseq bs (n + 1) (n + 3))
                                                              in if all isHex s
                                                                 then getHexChar s : loop (n + 3)
-                                                                else lError (col + n + 2) line path "Hmm..."
-               | otherwise                  = sbs `Fast.index` n : loop n
-        sbslen = Fast.length sbs
+                                                                else lError (col + n + 2) line path "Expected two-char hex"
+               | otherwise                  = bs `BS.index` n : loop (n + 1)
+        bslen = BS.length bs
 
 getHexChar :: String -> Char
-getHexChar s = let [c0, c1] = map charHex s
-               in toEnum $ c0 * 16 + c1
+getHexChar [c0,c1] = toEnum $ charToHex c0 * 16 + charToHex c1
 
 {-
 lexline :: String -> [Indent]

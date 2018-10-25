@@ -1,0 +1,4 @@
+(<A | Void> something) `void` (ifvoid, else)
+  typecase something
+    Void -> ifvoid
+    A    -> else

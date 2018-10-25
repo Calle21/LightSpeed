@@ -1,3 +1,0 @@
-test ( Int i ) = print i
-
-test ( Char c ) = print c

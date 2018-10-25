@@ -1,4 +1,4 @@
-fibonacci (Int n)
+fibonacci (n)
   if n < 2
     n
     else

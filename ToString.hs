@@ -1,35 +1,31 @@
-module ToString (putAllIndent, writeIndent) where
+module ToString where
 
 import qualified Data.ByteString.Char8 as C
-import Type.Token
-import Type.DirM
-import Type.File(File(Indented))
-import Type.Indent
+import Types
 import Ubi
-import Util(isVisibleDirectory, listDirectory')
-import System.FilePath.Posix (takeBaseName, takeDirectory, takeFileName, (</>))
+import Util
 
-tokenToString :: Token -> C.ByteString
-tokenToString t = case t of
-                  Keyword s     -> C.pack s
-                  Opname s      -> C.pack s
-                  Option s      -> C.pack s
+tokToString :: Tok -> String'
+tokToString t = case t of
+                  Keyword s     -> s
+                  Opname s      -> s
+                  Option s      -> s
                   Punctuation c -> C.pack [c]
-                  Reserved s    -> C.pack s
-                  Special s     -> C.pack s
-                  TokenChar c   -> C.pack $ show c
-                  TokenFloat f  -> C.pack $ show f
-                  TokenInt n    -> C.pack $ show n
-                  TokenString s -> C.pack $ show s
-                  Type s        -> C.pack s
-                  Vartype s     -> C.pack s
+                  Reserved s    -> s
+                  Special s     -> s
+                  TokChar c     -> C.pack $ show c
+                  TokFloat f    -> C.pack $ show f
+                  TokInt n      -> C.pack $ show n
+                  TokString s   -> C.pack $ show $ C.unpack s
+                  Type s        -> s
+                  Vartype s     -> s
 
-indentToString :: Indent -> C.ByteString
-indentToString (Line _ xs) = C.replicate (pred (fst $ head xs)) ' ' `C.append` C.pack " " `C.intercalate` ((tokenToString . snd) `map` xs) `C.append` C.pack "\n"
-indentToString (Indent ys) | colOfIndent (head ys) == 1 = separate $ indentToString `map` ys
+indentToString :: Indent -> String'
+indentToString (Line _ xs) = C.replicate (pred (fst $ head xs)) ' ' `C.append` C.pack " " `C.intercalate` ((tokToString . snd) `map` xs) `C.append` C.pack "\n"
+indentToString (Indent ys) | colOf (head ys) == 1 = separate $ indentToString `map` ys
                            | otherwise                  = C.concat (indentToString `map` ys)
   where
-  separate :: [C.ByteString] -> C.ByteString
+  separate :: [String'] -> String'
   separate (x:y:xs) = x `C.append` (if C.head y /= ' ' then C.pack "\n" else C.empty) `C.append` separate (y:xs)
   separate (x:_)    = x
 
@@ -47,5 +43,5 @@ putAllIndent path = do contents <- listDirectory' path
                        mapM_ (\path' -> do putStrLn (path </> takeFileName path' ++ ".nova")
                                            bs <- C.readFile path'
                                            C.putStrLn bs)
-                             this
+                              this
 
