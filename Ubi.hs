@@ -1,8 +1,10 @@
 module Ubi (
             Word
+          , comparing
           , createDirectoryIfMissing
           , digitToInt
           , doesDirectoryExist
+          , doesFileExist
           , filterM
           , find
           , fromJust
@@ -20,7 +22,9 @@ module Ubi (
           , liftM
           , listDirectory
           , makeAbsolute
+          , partition
           , removeFile
+          , sortBy
           , takeBaseName
           , takeDirectory
           , takeExtension
@@ -49,11 +53,17 @@ import Data.List (
                 , intersperse
                 , isPrefixOf
                 , isSuffixOf
+                , partition
+                , sortBy
                 )
 
 import Data.Maybe (
                    fromJust
                    )
+
+import Data.Ord (
+                 comparing
+                 )
 
 import Data.Time.Clock(
                        UTCTime
@@ -66,6 +76,7 @@ import Data.Word (
 import System.Directory (
                          createDirectoryIfMissing
                        , doesDirectoryExist
+                       , doesFileExist
                        , getCurrentDirectory
                        , getHomeDirectory
                        , getModificationTime

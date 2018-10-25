@@ -1,38 +1,41 @@
-module List (getFiles) where
+module List where
 
 import qualified Data.ByteString.Char8 as C
 import Types
 import Ubi
 import Util
 
-getFiles :: FilePath -> IO Directory
-getFiles dir = do contents <- listDirectory' dir
-                  let novafiles = filter (\p -> takeExtension p == ".nova" || takeFileName p `elem` [".use",".chain"])
-                                          contents
-                      fp        = (dir </> ".tostring")
-                  createDirectoryIfMissing False fp
-                  fconts <- listDirectory' fp
-                  let fconts' = filter (\p -> takeBaseName p `elem` map takeBaseName novafiles)
-                                        fconts
-                  mapM_ (deletes fconts') fconts
-                  olddates <- mapM getDate fconts'
-                  novafiles' <- filterM (\p -> case lookup (takeBaseName p) olddates of
-                                                 Nothing      -> return True -- new file
-                                                 Just olddate -> do newdate <- getModificationTime p
-                                                                    return (newdate > olddate))
-                                         novafiles
-                  maps <- filterM isVisibleDirectory contents
-                  subdirs <- mapM getFiles maps
-                  undones <- mapM (\path -> do bs <- C.readFile path
-                                               return (File (path, Undone bs)))
-                                   novafiles'
-                  return (map Folder (maps `zip` subdirs) ++ undones)
+isPathNova   p = C.pack (takeExtension p) == C.pack ".nova"
 
-deletes :: [FilePath] -> FilePath -> IO ()
-deletes new old = if old `elem` new
-                  then return ()
-                  else removeFile old
+isPathUnnova p = C.pack (takeFileName p) `arrayElem` Unnovas
 
-getDate :: FilePath -> IO (String, UTCTime)
-getDate p = do date <- getModificationTime p
-               return (takeBaseName p, date)
+Unnovas        = packit [".use",".chain"]
+
+filterNewFiles :: [FilePath] -> [UTCTime] -> [UTCTime] -> [FilePath]
+filterNewFiles oldf oldst hidst
+  | null oldf               = []
+  | head oldst > head hidst = head oldf : filterNewFiles (tail oldf) (tail oldst) (tail hidst)
+  | otherwise               =             filterNewFiles (tail oldf) (tail oldst) (tail hidst)
+
+getFiles :: FilePath -> FilePath -> IO Directory
+getFiles dir = do
+  contents <- listDirectory'  dir
+  hidfiles <- listDirectory' (dir </> ".tostring")
+  let (files,maps)            = partition  doesFileExist
+                                           contents
+      novafiles               = filter     isPathNova
+                                           files
+      spfiles                 = filter     isPathUnnova
+                                           files
+      (oldfiles,newfiles)     = partition (\p -> takeBaseName p `elem` map takeFileName hidfiles)
+                                           novafiles
+      (maybeReuse, deprfiles) = partition (\p -> takeFileName p `elem` map takeBaseName oldfiles)
+                                           hidfiles
+  mapM_ removeFile deprfiles
+  stamps    <- mapM getModificationTime $ sortBy (comparing getBaseName) oldfiles
+  hidstamps <- mapM getModificationTime $ sortBy (comparing getFileName) maybeReuse
+  let editedFiles = filterNewFiles oldfiles stamps hidstamps
+  newbs <- mapM C.readFile (spfiles ++ editedFiles ++ newfiles)
+  let newDirFile = map (File . Undone) newbs
+  subdir <- mapM getFiles maps
+  return (subdir ++ newDirFile)

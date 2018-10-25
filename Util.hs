@@ -4,6 +4,12 @@ import Data.Array
 import qualified Data.ByteString.Char8 as C
 import Ubi
 
+ -- and
+
+infixr 9 &&&
+
+p0 &&& p1 = (\arg -> p0 arg && p1 arg)
+
  -- arrayElem
 
 infix 4 `arrayElem`
@@ -97,7 +103,7 @@ none p t = not (any p t)
 
  -- or
 
-infixr 9 |||
+infixr 8 |||
 
 (|||) :: (a -> Bool) -> (a -> Bool) -> a -> Bool
 f0 ||| f1 = (\x -> f0 x || f1 x)
