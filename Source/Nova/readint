@@ -1,11 +1,8 @@
-readint (String s, Int* i) the Int = rec (sum' = 0, n = *i)
-  c = s.n
-  if digit c
-    rec (sum' * 10 + safe (undigit c), n + 1)
-    else *i := n >> sum'
+readint (String s, Int i) = rec (sum' = 0, n' = i)
+  $ digit #c s@n -> rec (sum' * 10 + safe (undigit c), n' + 1)
+  $ else         -> (sum', n')
 
-readint ({Char} seq) the Int = rec (sum = 0, i = seq.start)
-  if
-   i == seq.end     -> sum
-   digit c# seq.i -> rec (sum * 10 + safe (undigit c), i + 1)
-    else sum
+readint (<Sequence Char> seq) = rec (sum' = 0, i = seq.start)
+  $ i == seq.end   -> sum'
+  $ digit #c seq@i -> rec (sum' * 10 + safe (undigit c), i + 1)
+  $ else           -> error "Bad sequence"

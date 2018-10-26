@@ -72,13 +72,16 @@ isHex c | c >= '0' && c <= '9' = True
         | c >= 'A' && c <= 'Z' = True
         | otherwise            = False
 
- -- isVisibleDirectory
+ -- isPathVisible
 
-isVisibleDirectory :: FilePath -> IO Bool
-isVisibleDirectory path = do let begin = head (takeFileName path)
-                             dir <- doesDirectoryExist path
-                             return (dir && not (begin=='.'))
+isPathVisible :: FilePath -> Bool
+isPathVisible path = not (head (takeFileName path) == '.')
 
+ -- isPathVisibleDirectory
+
+isPathVisibleDirectory :: FilePath -> IO Bool
+isPathVisibleDirectory path = do ex <- doesDirectoryExist path
+                                 return (ex && isPathVisible path)
 
  -- listDirectory
 

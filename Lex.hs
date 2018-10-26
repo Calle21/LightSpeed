@@ -8,7 +8,7 @@ import Ubi
 import Util
 
 novalex :: CompFN
-novalex _ (path, Undone s) = (Lexed $ loop 1 1 s, [])
+novalex _ path (Undone s) = (Lexed $ loop 1 1 s, [])
   where
   loop :: Int -> Int -> String' -> [Tok2]
   loop col line inp

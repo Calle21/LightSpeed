@@ -4,7 +4,7 @@ import qualified Data.ByteString.Char8 as C
 import Types
 
 indent :: CompFN
-indent _ (_, Lexed xs) = (Indented $ fst $ getIndent [] 1 xs, [])
+indent _ _ (Lexed xs) = (Indented $ fst $ getIndent [] 1 xs, [])
   where
   getIndent :: [Indent] -> Int -> [Tok2] -> (Indent, [Tok2])
   getIndent acc level toks@(x:_) =

@@ -30,14 +30,14 @@ indentToString (Indent ys) | colOf (head ys) == 1 = separate $ indentToString `m
   separate (x:_)    = x
 
 writeIndent :: DirM
-writeIndent (path,file) = case file of
+writeIndent path file = case file of
                           Indented y -> do let thebs   = indentToString y
                                                hidpath = takeDirectory path </> ".tostring" </> takeBaseName path
                                            C.writeFile hidpath thebs
 
 putAllIndent :: FilePath -> IO ()
 putAllIndent path = do contents <- listDirectory' path
-                       maps <- filterM isVisibleDirectory contents
+                       maps <- filterM isPathVisibleDirectory contents
                        mapM_ putAllIndent maps
                        this <- listDirectory' (path </> ".tostring")
                        mapM_ (\path' -> do putStrLn (path </> takeFileName path' ++ ".nova")

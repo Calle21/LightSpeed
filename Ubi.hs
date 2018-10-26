@@ -1,44 +1,27 @@
 module Ubi (
-            Word
-          , comparing
-          , createDirectoryIfMissing
-          , digitToInt
-          , doesDirectoryExist
-          , doesFileExist
-          , filterM
-          , find
-          , fromJust
-          , getArgs
-          , getCurrentDirectory
-          , getHomeDirectory
-          , getModificationTime
-          , intercalate
-          , intersperse
-          , isDigit
-          , isLower
-          , isPrefixOf
-          , isSuffixOf
-          , isUpper
-          , liftM
-          , listDirectory
-          , makeAbsolute
-          , partition
-          , removeFile
-          , sortBy
-          , takeBaseName
-          , takeDirectory
-          , takeExtension
-          , takeFileName
-          , UTCTime
-          , (</>)
-          , (<=<)
-          , (=~)) where
+       module Control.Monad
+       module Control.Monad.Extra
+       module Data.Char
+       module Data.List
+       module Data.Maybe
+       module Data.Ord
+       module Data.Time.Clock
+       module Data.Word
+       module System.Directory
+       module System.Environment
+       module System.FilePath.Posix
+       module Text.Regex.PCRE
+           ) where
 
 import Control.Monad (
                       filterM
                     , liftM
                     , (<=<)
                     )
+
+import Control.Monad.Extra (
+                            partitionM
+                            )
 
 import Data.Char (
                   digitToInt

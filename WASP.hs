@@ -1,21 +1,22 @@
-module WASP (WASP) where
+module WASP where
 
-import Ubi
-import Lex
-import Indent
-import Parse
 import Compile
+import Indent
+import Lex
+import Parse
+import Types
+import Ubi
 
 WASP :: IO ()
 WASP = do args    <- getArgs
           current <- getCurrentDirectory
           files   <- getFiles current
-          let lexed              = mapDir []    lex     files
-              indented           = mapDir []    indent  lexed
-              (setup, indented') = getSetup indented
-              parsed             = mapDir setup  parse   indented
-              setup'             = deriveReturns setup parsed
-              compiled           = mapDir setup' compile parsed
+          let lexed                        = mapFolder []              novalex files
+              indented                     = mapFolder []              indent  lexed
+              (parserSpecifics, indented') =        getParserSpecifics         indented
+              parsed                       = mapFolder parserSpecifics parse   indented
+              protos                       = getProtos parserSpecifics         parsed
+              compiled                     = mapFolder protos          compile parsed
           writeComp compiled
           if "lib" `elem` args
           then writeLib =<< makeLib current

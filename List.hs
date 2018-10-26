@@ -1,15 +1,10 @@
 module List where
 
 import qualified Data.ByteString.Char8 as C
+import Syntax
 import Types
 import Ubi
 import Util
-
-isPathNova   p = C.pack (takeExtension p) == C.pack ".nova"
-
-isPathUnnova p = C.pack (takeFileName p) `arrayElem` Unnovas
-
-Unnovas        = packit [".use",".chain"]
 
 filterNewFiles :: [FilePath] -> [UTCTime] -> [UTCTime] -> [FilePath]
 filterNewFiles oldf oldst hidst
@@ -17,13 +12,15 @@ filterNewFiles oldf oldst hidst
   | head oldst > head hidst = head oldf : filterNewFiles (tail oldf) (tail oldst) (tail hidst)
   | otherwise               =             filterNewFiles (tail oldf) (tail oldst) (tail hidst)
 
-getFiles :: FilePath -> FilePath -> IO Directory
+getFiles :: FilePath -> IO Directory
 getFiles dir = do
-  contents <- listDirectory'  dir
-  hidfiles <- listDirectory' (dir </> ".tostring")
-  let (files,maps)            = partition  doesFileExist
+  contents   <- listDirectory'  dir
+  let hiddir                  = dir </> ".tostring"
+  createDirectoryIfMissing hiddir
+  hidfiles   <- listDirectory' hiddir
+  files      <-                 filterM    doesFileExist
                                            contents
-      novafiles               = filter     isPathNova
+  let novafiles               = filter     isPathNova
                                            files
       spfiles                 = filter     isPathUnnova
                                            files
@@ -32,10 +29,14 @@ getFiles dir = do
       (maybeReuse, deprfiles) = partition (\p -> takeFileName p `elem` map takeBaseName oldfiles)
                                            hidfiles
   mapM_ removeFile deprfiles
-  stamps    <- mapM getModificationTime $ sortBy (comparing getBaseName) oldfiles
-  hidstamps <- mapM getModificationTime $ sortBy (comparing getFileName) maybeReuse
-  let editedFiles = filterNewFiles oldfiles stamps hidstamps
-  newbs <- mapM C.readFile (spfiles ++ editedFiles ++ newfiles)
-  let newDirFile = map (File . Undone) newbs
-  subdir <- mapM getFiles maps
+  stamps     <- mapM getModificationTime $ sortBy (comparing takeBaseName) oldfiles
+  hidstamps  <- mapM getModificationTime $ sortBy (comparing takeFileName) maybeReuse
+  let editedFiles             = filterNewFiles oldfiles stamps hidstamps
+  newDirFile <- mapM (\path -> do bs <- C.readFile path
+                                  return (File path $ Undone bs))
+                     (spfiles ++ editedFiles ++ newfiles)
+  maps       <- filterM isPathVisibleDirectory contents
+  subdir     <- mapM (\path -> do files <- getFiles path
+                                  return (Folder path files))
+                      maps
   return (subdir ++ newDirFile)

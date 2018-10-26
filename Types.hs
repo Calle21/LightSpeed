@@ -8,103 +8,211 @@ import Util(String')
 
  -- Binding
 
+data Binding = Binding {locals  :: [Binding],
+                        bindpat :: Pattern,
+                        params  :: BindPat,
+                        value   :: Code}
+              deriving (Read, Show)
+
  -- BindPat
+
+type BindPat = [String]
 
  -- Code
 
-type Code = ()
+data Code = Array      [String] [Code]
+          | Callop     String Code
+          | Catch      String
+          | Defspecial String Code
+          | From       String String
+          | Let        Locals Code
+          | Name       String
+          | CallPat    [Code]
+          | Primitive  Prim Integer
+          | The        [String] Code
+          | Throw      String Code
+          | Tuple      [Code]
+          deriving (Eq, Ord, Read, Show)
 
  -- CompFN
 
-type CompFN = Setup -> FileWPath -> (File,Setup)
-
- -- Directory
-
-type Directory = [DirFile]
-
- -- DirFile
-
-data DirFile = Folder (FilePath, Directory)
-             | File   FileWPath
-             deriving (Read, Show)
-
-countFiles :: Directory -> Int
-countFiles (x:xs) = case x of
-                      File   _       -> 1 + countFiles xs
-                      Folder (_,dir) -> countFiles dir + countFiles xs
-countFiles []     = 0
-
-mapDir :: Setup -> CompFN -> Directory -> Directory
-mapDir setup fn (x:xs) = case x of
-                           File   fw      -> let (file,setup') = fn setup fw
-                                             in File (fst fw, file) : mapDir setup' fn xs
-                           Folder (p,dir) -> Folder (p, (mapDir setup fn dir)) : mapDir setup fn xs
-mapDir _     _  []     = []
-
-mapDirM :: DirM -> Directory -> IO ()
-mapDirM act (x:xs) = case x of
-                       File   cf      -> do act cf
-                       Folder (_,dir) -> do mapDirM act dir
-                                            mapDirM act xs
-mapDirM _   []     = return ()
-
- -- DirM
-
-type DirM = FileWPath -> IO ()
+type CompFN = [ParserSpec] -> FilePath -> CompFile -> CompFile
 
  -- File
 
-data File = Undone   C.ByteString
-          | Lexed    [Tok2]
-          | Indented Indent
-          | Parsed   Code
-          | Compiled NIL
+data File = Folder   FilePath Folder
+          | CompFile FilePath CompFile
           deriving (Read, Show)
 
- -- FileWPath
+countFiles :: Folder -> Int
+countFiles (x:xs) = case x of
+                      CompFile _ _   -> 1              + countFiles xs
+                      Folder   _ fol -> countFiles fol + countFiles xs
+countFiles []     = 0
 
-type FileWPath = (FilePath, File)
+mapFolder :: [ParserSpec] -> CompFN -> Folder -> Folder
+mapFolder parserSpec fn (x:xs) = case x of
+                                CompFile p f   -> let file = fn parserSpec p f
+                                                  in CompFile p file : mapFolder parserSpec fn xs
+                                Folder   p fol -> Folder p (mapFolder parserSpec fn fol) : mapFolder parserSpec fn xs
+mapFolder _          _  []     = []
+
+mapFolderM :: FolderM -> Folder -> IO ()
+mapFolderM act (x:xs) = case x of
+                       CompFile p f   -> do act p f
+                       Folder   _ fol -> do mapFolderM act fol
+                                            mapFolderM act xs
+mapFolderM _   []     = return ()
+
+ -- Folder
+
+type Folder = [File]
+
+ -- FolderM
+
+type FolderM = FilePath -> CompFile -> IO ()
+
+ -- CompFile
+
+data CompFile = Undone   C.ByteString
+              | Lexed    [Tok2]
+              | Indented Indent
+              | Parsed   Code
+              | Compiled NIL
+              deriving (Read, Show)
 
  -- Fixity
 
+data Fixity = Infixl | Infixr | Prefix | Postfix
+
+data Fixity = Infixl Int | Infixr Int | Prefix | Postfix
+            deriving (Read, Show)
+
+fixWin :: (Fixity, Fixity) -> Either () ()
+fixWin (Postfix, _) = Left ()
+fixWin (_, Postfix) = Right ()
+fixWin (Prefix, _)  = Left ()
+fixWin (_, Prefix)  = Right ()
+fixWin (left,right) = let s0 = getStrength left
+                          s1 = getStrength right
+                      in if s0 > s1 then Left ()
+                         else if s1 > s0 then Right ()
+                              else case (left,right) of
+                                     (Infixr _, Infixr _) -> Right ()
+                                     _                    -> Left ()
+  where
+  getStrength :: Fixity -> Int
+  getStrength (Infixl s) = s
+  getStrength (Infixr s) = s
+
  -- Function
 
- -- FunctionType
+data Callable = Callable {callableOffsetInLibrary :: Either NIL Int, -- Inline or offset
+                          callablePattern         :: [Pat],
+                          callableIsPure          :: Bool}
+{-
+data Function = Function {fntype  :: FunctionType,
+                          rettype :: [String],
+                          pattern :: [Pattern],
+                          body    :: Code,
+                          setup   :: Setup}
+              deriving (Read, Show)
+-}
+data Library = Library {libraryLocation        :: FilePath,
+                        libraryParserSpecifics :: ParserSpec,
+                        libraryCallables       :: [Callable]}
 
  -- Indent
 
-data Indent = Line Int [Tok1]
-            | Indent [Indent]
-            deriving (Read, Show)
+data Line = Line Int [Tok1]
+          | Fold [Line]
+          deriving (Read, Show)
 
 colOf  (Line _ xs) = tok1Col (head xs)
-colOf  (Indent ys) = colOf (head ys)
+colOf  (Fold ys)   = colOf (head ys)
 lineOf (Line ln _) = ln
-lineOf (Indent ys) = lineOf (head ys)
+lineOf (Fold ys)   = lineOf (head ys)
 
  -- Lib
 
-type Lib = ()
+type LChain = [(String, String)]
+
+type LFix = Map String Fixity
+
+data Lib = Lib {autotags :: [([String],String)],
+                bindings :: [Binding],
+                chains   :: [(String,String)],
+                fixity   :: Map.Map String Fixity,
+                tags     :: Map.Map String Type BindPat Code,
+                types    :: Set.Set Type}
+         deriving (Read, Show)
+
+type LTag = [([String],String)]
+
+type LTyp = Map [String] [String]
+
+type LVal = Map Identifier [Binding]
 
  -- Local
 
+data Local = Local {bind        :: Binding,
+                    annotations :: [String]}
+           | Locals [Binding]
+           deriving (Read, Show)
+
  -- NIL
 
-type NIL = ()
+data NIL = NILWord  String
+         | NILHash  String
+         | NILInt   Int
+         | NILFloat Float
+         | NILList  [NIL]
+         deriving (Read, Show)
 
  -- Pat
 
+data Pat = PatK String'
+         | PatT Type
+         deriving (Eq, Ord, Read, Show)
+
+patCompat :: Setup -> Pat -> Pat -> Bool
+patCompat _     (PatK s0) (PatK s1) = s0 == s1
+patCompat _     (PatK _)  (PatT _)  = True
+patCompat setup (PatT t0) (PatT t1) = typeCompat setup t0 t1
+patCompat _     _         _         = False
+
+getTypeAsTuple :: [Pat] -> Type
+getTypeAsTuple pat = typeConcat $ filterIt pat
+  where
+  filterIt ((PatT t):xs) = t : filterIt xs
+  filterIt ((PatK _):xs) = filterIt xs
+  filterIt []            = []
+
  -- Pattern
+
+newtype Pattern = Pattern (Type, [Pat]) deriving (Eq, Ord, Read, Show)
+
+patternCompat = undefined
+ -- patternCompat :: Setup -> Pattern -> Pattern -> Bool
+ -- patternCompat setup (ret0, pat0) (ret1, pat1) = typeCompat setup ret0 ret1 && every (uncurry patCompat) (pat0 `zip` pat1)
 
  -- PMonad
 
+type PMonad = [Tok1] -> Maybe [Tok1]
+
  -- Prim
 
- -- Setup
+data Prim = Signed Int | Unsigned Word deriving (Eq, Read, Show)
 
-type Setup = [(String,Lib)]
+instance Ord Prim where
+  compare (Signed i0)   (Signed i1)   = compare i0 i1
+  compare (Unsigned w0) (Unsigned w1) = compare w0 w1
+  compare (Signed i)    (Unsigned w)  = compare i (fromIntegral w)
+  compare (Unsigned w)  (Signed i)    = compare (fromIntegral w) i
 
  -- SpecialParse
+
+type SpecialParse = (Setup, FilePath, [Indent]) -> (Setup, [Indent])
 
  -- Tok
 
@@ -169,4 +277,62 @@ tok2Tok (_,_,tk) = tk
 
  -- TokP
 
+type TokP = Tok -> Bool
+
  -- Type
+
+type Type = (String, String, [String])
+
+typeCompat = undefined
+typeConcat = undefined
+
+gettname, gettvars :: Type -> String
+gettname (Type (n, _, _)) = n
+gettvars (Type (_, v, _)) = v
+
+gettdesc :: Type -> [String]
+gettdesc (Type (_, _, d)) = d
+
+instance Ord Type where
+compare :: Type -> Type -> Ordering
+compare (Type (n0, _, _)) (Type (n1, _, _)) = compare n0 n1
+
+checkType :: Type -> Maybe Type
+checkType xs = undefined
+
+getTupleElements :: Type -> [Type]
+getTupleElements t = if tuple t then split "," $ init $ tail t
+                     else error "Called on single"
+
+mkFNtype :: Type -> Type -> Type
+mkFNtype ret param = ret ++ ["<-"] ++ param
+
+safeGetTupleElements :: Type -> [Type]
+safeGetTupleElements t = if single t then t else getTupleElements t
+
+single :: Type -> Bool
+single = not . tuple
+
+tuple :: Type -> Bool
+tuple (x:xs) = x == "("
+
+typeCompat :: Setup -> Type -> Type -> Bool
+typeCompat t0 t1 = let ts = [t0, t1]
+                   in if all single ts then singleCompat ts
+                      else if all tuple ts
+                           then let [elts0,elts1] = getTupleElements `map` ts
+                                in length elts0 == length elts1 && all (uncurry $ typeCompat setup) (elts0 `zip` elts1)
+                           else False
+  where
+  singleCompat :: [Type] -> Bool
+  singleCompat ts@[t0,t1] = if any vartype ts then True
+                            else t0 == t1
+
+typeConcat :: [Type] -> Type
+typeConcat xs = "(" : intercalate [","] (safeGetTupleElements `map` xs) ++ [")"]
+
+vartype :: Type -> Bool
+vartype [[c]] = isUpper c
+vartype _   = False
+
+data TypeCheck = TypeCheck

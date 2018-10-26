@@ -9,6 +9,10 @@ annotation s = s `arrayElem` annotations
 annotations = packit ["mutable",
                       "static"]
 
+isPathNova p = C.pack (takeExtension p) == C.pack ".nova"
+
+isPathUnnova p = C.pack (takeFileName p) `arrayElem` unnovas
+
 punctuation c = c `C.elem` punctuations
 
 punctuations = C.pack "()[]{}.,@#"
@@ -101,3 +105,5 @@ synType       s' = let s = C.unpack s'
                    in s =~ "^[A-Z][a-zA-Z0-9]*$" && not (all isUpper s)
 
 synVartype    s' = C.unpack s' =~ "^[A-Z]+$" :: Bool
+
+unnovas = packit [".use",".chain",".export",".exe"]
