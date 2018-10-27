@@ -9,13 +9,22 @@ annotation s = s `arrayElem` annotations
 annotations = packit ["mutable",
                       "static"]
 
+charword s' = isJust (s' `lookup` charwords)
+
+charwords = packassoc [("nul"  ,   '\NUL')
+                     , ("tab"  ,   '\t')
+                     , ("newline", '\n')
+                     , ("space",   ' ')]
+
+charwordChar s' = fromJust $ (s' `lookup` charwords)
+
 isPathNova p = C.pack (takeExtension p) == C.pack ".nova"
 
 isPathUnnova p = C.pack (takeFileName p) `arrayElem` unnovas
 
 punctuation c = c `C.elem` punctuations
 
-punctuations = C.pack "()[]{}.,@#"
+punctuations = C.pack "()[]{}.,@#$"
 
 reserved s = s `arrayElem` reserveds
 
@@ -25,6 +34,7 @@ reserveds = packit ["->",
                     ":=",
                     "<-",
                     "=",
+                    "?",
                     "_",
                     "catch",
                     "do",
@@ -54,6 +64,7 @@ reserveds = packit ["->",
                     "struct",
                     "switch",
                     "synonym",
+                    "syscall",
                     "tag",
                     "then",
                     "throw",
@@ -88,6 +99,8 @@ symChar c = c >= 'a' && c <= 'z' ||
 
 synFloat      s' = C.unpack s' =~ "^-?\\d+\\.\\d+$" :: Bool
 
+synHexChar    s' = C.unpack s' =~ "^[0-9a-fA-F]{2}$" :: Bool
+
 synInt        s' = C.unpack s' =~ "^-?\\d+$" :: Bool
 
 synKeyword    s' = let s = C.unpack s'
@@ -99,7 +112,7 @@ synOpnameText s' = C.unpack s' =~ "^`[a-z]{2..}`$" :: Bool
 
 synOption     s' = C.unpack s' =~ "^%[a-z]{2..}%$" :: Bool
 
-synSpecial    s' = C.unpack s' =~ "^-[A-Z0-9]+-$" :: Bool
+synSpecial    s' = C.unpack s' =~ "^\*[a-zA-Z0-9]+\*$" :: Bool
 
 synType       s' = let s = C.unpack s'
                    in s =~ "^[A-Z][a-zA-Z0-9]*$" && not (all isUpper s)

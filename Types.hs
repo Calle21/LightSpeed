@@ -16,27 +16,41 @@ data Binding = Binding {locals  :: [Binding],
 
  -- BindPat
 
-type BindPat = [String]
+type BindPat = Tuple [BindPat]
+             | Single (Maybe Type) String'
+             | Callable [BindPat]
+
+ -- Prim
+
+data Prim = Signed Int | Unsigned Int deriving (Eq, Read, Show)
+
+instance Ord Prim where
+  compare (Signed i0)   (Signed i1)   = compare i0 i1
+  compare (Unsigned w0) (Unsigned w1) = compare w0 w1
+  compare (Signed i)    (Unsigned w)  = compare i (fromIntegral w)
+  compare (Unsigned w)  (Signed i)    = compare (fromIntegral w) i
 
  -- Code
 
-data Code = Array      [String] [Code]
-          | Callop     String Code
-          | Catch      String
-          | Defspecial String Code
-          | From       String String
-          | Let        Locals Code
-          | Name       String
-          | CallPat    [Code]
-          | Primitive  Prim Integer
-          | The        [String] Code
-          | Throw      String Code
-          | Tuple      [Code]
+data Code = Array      Type   [Code]
+          | Bind       BindPat Code
+          | OpCall     String' Code
+          | Catch      String'
+          | From       String' String'
+          | Let        Locals  Code
+          | PatCall    Pattern
+          | Primitive  Prim    Integer
+          | The        Type    Code
+          | Throw      String' Code
+          | Tuple             [Code]
           deriving (Eq, Ord, Read, Show)
+
+data Pattern = Identifier    String'
+             | SomethingElse Code
 
  -- CompFN
 
-type CompFN = [ParserSpec] -> FilePath -> CompFile -> CompFile
+type CompFN = [[CompSpec]] -> [ParserSpec] -> FilePath -> CompFile -> CompFile
 
  -- File
 
@@ -169,6 +183,11 @@ data NIL = NILWord  String
          | NILList  [NIL]
          deriving (Read, Show)
 
+ -- ParserSpec
+
+data ParserSpec = ParserSpec {parserSpecInfixs :: Map String' Fixity
+                            , parserSpecChains :: [(String',String')]}
+
  -- Pat
 
 data Pat = PatK String'
@@ -200,16 +219,6 @@ patternCompat = undefined
 
 type PMonad = [Tok1] -> Maybe [Tok1]
 
- -- Prim
-
-data Prim = Signed Int | Unsigned Word deriving (Eq, Read, Show)
-
-instance Ord Prim where
-  compare (Signed i0)   (Signed i1)   = compare i0 i1
-  compare (Unsigned w0) (Unsigned w1) = compare w0 w1
-  compare (Signed i)    (Unsigned w)  = compare i (fromIntegral w)
-  compare (Unsigned w)  (Signed i)    = compare (fromIntegral w) i
-
  -- SpecialParse
 
 type SpecialParse = (Setup, FilePath, [Indent]) -> (Setup, [Indent])
@@ -227,7 +236,7 @@ data Tok = Keyword       String'
          | TokInt        Int
          | TokString     String'
          | Type          String'
-         | Vartype       String'
+         | Typevar       String'
          deriving (Eq, Read, Show)
 
 tokChar   (Punctuation c) = c
@@ -240,7 +249,7 @@ tokString (Reserved s')   = s'
 tokString (Special s')    = s'
 tokString (TokString s')  = s'
 tokString (Type s')       = s'
-tokString (Vartype s')    = s'
+tokString (Typevar s')    = s'
 
  -- Tok1
 

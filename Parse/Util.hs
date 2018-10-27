@@ -37,6 +37,11 @@ plist = one isStartParen >=> listof (Punct ',') (one (is (Punct ')'))) (aType >=
 
  -- Monad generators
 
+cyclic :: PMonad -> PMonad
+cyclic m xs = case m xs of
+                Just xs' -> cyclic m xs'
+                Nothing  -> Just xs
+
 exactly :: Int -> TokP -> PMonad
 exactly 0 _ xs           = xs
 exactly n f (x:xs) | f x = exactly (n - 1) f xs

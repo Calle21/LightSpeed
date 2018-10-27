@@ -34,6 +34,16 @@ deleteIf' fn (x:xs) | fn x      = xs
                     | otherwise = x : deleteIf' fn xs
 deleteIf' _  []     = []
 
+ -- dropAndCountUntil'
+
+dropAndCountUntil' :: (Char -> Bool) -> String' -> (Int, String')
+dropAndCountUntil' fn inp = loop 0
+  where
+  loop n
+    | n == C.length inp    = (n, C.empty)
+    | fn (inp `C.index` n) = (n, C.drop n inp)
+    | otherwise            = loop (n + 1)
+
  -- dropUntil
 
 dropUntil :: (a -> Bool) -> [a] -> [a]
@@ -65,6 +75,8 @@ charToHex c | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
             | c >= 'A' && c <= 'F' = fromEnum c - fromEnum 'A' + 10
             | otherwise            = error ("Not a hex digit : " ++ [c])
 
+getHexChar :: String' -> Int
+getHexChar [c0,c1] = fromEnum c0 * 16 + fromEnum c1
 
 isHex :: Char -> Bool
 isHex c | c >= '0' && c <= '9' = True
@@ -122,6 +134,13 @@ putFirst fn xs = case find fn xs of
                    Nothing -> xs
                    Just x  -> x : deleteIf' fn xs
 
+ -- reverse apply
+
+infixl 1 &
+
+(&) :: a -> (a -> b) -> b
+(&) = flip ($)
+
  -- split
 
 split :: (Eq a) => a -> [a] -> [[a]]
@@ -142,10 +161,3 @@ subseq bs start end = C.take (end - start) (C.drop start bs)
 
 tailinit  = init   . tail
 tailinit' = C.tail . C.init
-
- -- and
-
-infixl 1 &
-
-(&) :: a -> (a -> b) -> b
-(&) = flip ($)

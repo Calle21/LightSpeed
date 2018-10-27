@@ -1,29 +1,27 @@
-reverse (<List E> ls)
-  rec (prev = void, next = ls)
+<List E> reverse (<List E> ls)
+  rec (prev' = void, next = ls)
     if next
-      rec (next.cdr := prev, next.cdr)
-      else
-      prev the <List E>
+      rec (next.cdr := prev', next.cdr)
+      else prev'
 
-reverse ({E} seq) = (start, end) = seq.(start, end)
-                    rec (seq' = seq #l (length of seq), i = 0)
-                      if i >= #end (#l - i)
-                        seq'
-                        else
-                        rec (seq'@(i,#end) := seq@(#end,i), i + 1)
+reverse (<Sequence E> seq) = (start, end) = seq.(start, end)
+                             rec (seq' = seq #l (length of seq), i = 0)
+                               ? i >= #end (l - i) -> seq'
+                                 else
+                                 rec (seq'@(i, end) := seq@(end, i), i + 1)
 
 reverse ([E] tab) = intermediate [E] modifying (tab)
                     (bind #arr   (lw #tab)
-                          #size  (lw (add #tab 1))
+                          #size  (lw (add #tab (mul 1 WS)))
                           #start 0
-                          #end   (sub #size 1))
+                          #end   (sub #size WS))
                     (label start)
                     (jif (ge #start #end) end)
-                    (bind #temp (lw (add #arr #start)))
+                    (bind #temp (lw (add #arr #start))
                     (sw (add #arr #start) (lw (add #arr #end))
                         (add #arr #end)   #temp)
-                    (set #start (add #start 1)
-                         #end   (sub #end 1))
+                    (set #start (add #start WS)
+                         #end   (sub #end   WS))
                     (unbind #temp)
                     (jump start)
                     (label end)
@@ -33,10 +31,11 @@ reverse ([E] tab) = to = array #size tab.size
                     intermediate [E] writing (to)
                     (bind #from (lw #tab)
                           #i    0
-                          #end  (add #from (sub #size 1)))
+                          #end  (mul #size WS))
                     (label start)
-                    (jif (eq #i #size) end)
+                    (jif (eq #i #end) end)
                     (sw (add #to #i) (lw (sub #end #i)))
+                    (set #i (add #i WS))
                     (jump start)
                     (label end)
                     (return (tuple #to #size))

@@ -42,6 +42,7 @@ import Data.List (
 
 import Data.Maybe (
                    fromJust
+                   isJust
                    )
 
 import Data.Ord (

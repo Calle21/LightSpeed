@@ -11,12 +11,12 @@ WASP :: IO ()
 WASP = do args    <- getArgs
           current <- getCurrentDirectory
           files   <- getFiles current
-          let lexed                        = mapFolder []              novalex files
-              indented                     = mapFolder []              indent  lexed
-              (parserSpecifics, indented') =        getParserSpecifics         indented
-              parsed                       = mapFolder parserSpecifics parse   indented
-              protos                       = getProtos parserSpecifics         parsed
-              compiled                     = mapFolder protos          compile parsed
+          let lexed           = mapFolder []              novalex files
+              indented        = mapFolder []              indent  lexed
+              parserSpecifics =        getParserSpecifics         indented
+              parsed          = mapFolder parserSpecifics parse   indented
+              protos          = getProtos parserSpecifics         parsed
+              compiled        = mapFolder protos          compile parsed
           writeComp compiled
           if "lib" `elem` args
           then writeLib =<< makeLib current
