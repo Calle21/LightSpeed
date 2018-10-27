@@ -18,6 +18,10 @@ charwords = packassoc [("nul"  ,   '\NUL')
 
 charwordChar s' = fromJust $ (s' `lookup` charwords)
 
+escapeChar = (`C.elem` escapeChars)
+
+escapeChars = C.pack "nt\\\""
+
 isPathNova p = C.pack (takeExtension p) == C.pack ".nova"
 
 isPathUnnova p = C.pack (takeFileName p) `arrayElem` unnovas

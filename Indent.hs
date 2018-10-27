@@ -4,7 +4,7 @@ import qualified Data.ByteString.Char8 as C
 import Types
 
 indent :: CompFN
-indent _ _ (Lexed xs) = (Indented $ fst $ getIndent [] 1 xs, [])
+indent (Lexed xs) = Indented $ fst $ getIndent [] 1 xs
   where
   getIndent :: [Indent] -> Int -> [Tok2] -> (Indent, [Tok2])
   getIndent acc level toks@(x:_) =
@@ -21,7 +21,7 @@ indent _ _ (Lexed xs) = (Indented $ fst $ getIndent [] 1 xs, [])
 
 aline :: [Tok1] -> Int -> Int -> [Tok2] -> (Indent, [Tok2])
 aline acc ln backs (x:xs)
-  | tok2Line x == ln = if tok2Tok x == Reserved (C.pack "\\")
+  | tok2Line x == ln = if tok2Tok x == Reserved (C.singleton '\\')
                        then aline ((tok2Col x, Punctuation '(') : acc) ln (backs + 1) xs
                        else aline ((tok2Col x, tok2Tok x)      : acc) ln  backs      xs
 aline acc ln backs xs = (Line ln $ npunct backs acc, xs)

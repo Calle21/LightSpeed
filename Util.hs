@@ -10,6 +10,15 @@ infixr 9 &&&
 
 p0 &&& p1 = (\arg -> p0 arg && p1 arg)
 
+ -- all
+
+all' :: (Char -> Bool) -> String' -> Bool
+all' fn bs = loop 0
+  where
+  loop n | n == C.length bs    = True
+         | fn (bs `C.index` n) = loop (n + 1)
+         | otherwise           = False
+
  -- arrayElem
 
 infix 4 `arrayElem`
@@ -69,14 +78,16 @@ format s ss = loop s
 
  -- Hex
 
-charToHex :: Char -> Int
-charToHex c | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
-            | c >= 'a' && c <= 'f' = fromEnum c - fromEnum 'a' + 10
-            | c >= 'A' && c <= 'F' = fromEnum c - fromEnum 'A' + 10
-            | otherwise            = error ("Not a hex digit : " ++ [c])
+hexToInt :: Char -> Int
+hexToInt c | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
+           | c >= 'a' && c <= 'f' = fromEnum c - fromEnum 'a' + 10
+           | c >= 'A' && c <= 'F' = fromEnum c - fromEnum 'A' + 10
+           | otherwise            = error ("Not a hex char : " ++ [c])
 
-getHexChar :: String' -> Int
-getHexChar [c0,c1] = fromEnum c0 * 16 + fromEnum c1
+getHexChar :: String' -> Maybe Char
+getHexChar bs = if C.length bs == 2 && all' isHex bs
+                then Just $ toEnum $ hexToInt (C.head bs) * 16 + (hexToInt (bs `C.index` 1))
+                else Nothing
 
 isHex :: Char -> Bool
 isHex c | c >= '0' && c <= '9' = True

@@ -8,7 +8,7 @@ import Ubi
 import Util
 
 novalex :: CompFN
-novalex _ _ path (Undone s') = Lexed $ loop 1 1 s'
+novalex path (Undone s') = Lexed $ loop 1 1 s'
   where
   loop :: Int -> Int -> String' -> [Tok2]
   loop col line inp
@@ -27,11 +27,10 @@ novalex _ _ path (Undone s') = Lexed $ loop 1 1 s'
               else case c of
                 '"'  -> let start = C.tail inp
                         in case '"' `C.elemIndex` start of
-                             Nothing -> lError col line path "Couldn't find end of string"
-                             Just i  -> let sb = C.take i start
-                                            s  = buildString sb
-                                            s' = C.pack s
-                                        in (TokString s', C.length s', C.drop (i + 1) start)
+                             Just i -> let sr = C.take i start
+                                           s' = C.pack $ buildString sr
+                                       in (TokString s', C.length s', C.drop (i + 1) start)
+                             _      -> lError col line path "Couldn't find end of string"
                 '\'' -> let (s', inp') = C.span (symChar ||| punctuation) (C.tail inp)
                             c | C.length   s' == 1 = C.head       s'
                               | charword   s'      = charwordChar s'
@@ -40,7 +39,7 @@ novalex _ _ path (Undone s') = Lexed $ loop 1 1 s'
                                                      else if C.head inp' == ' '
                                                           then ' '
                                                           else lError (col + 1) line path ("Expected punctuation char, space or symchar after ', not " ++ [C.head inp'])
-                              | synHexChar s'      = getHexChar s'
+                              | synHexChar s'      = fromJust $ getHexChar s'
                               | otherwise          = lError col line path ("Couldn't read character : '" ++ C.unpack s)
                         in (TokChar c, 1 + C.length s', inp')
                 _    -> let (s', inp') = C.span symChar inp
@@ -62,26 +61,16 @@ novalex _ _ path (Undone s') = Lexed $ loop 1 1 s'
       buildString bs = loop 0
         where
         loop :: Int -> String
-        loop n | n                 == bslen = []
-               | bs `C.index` n == '\\'  = if n + 1 == bslen then lError (col + n + 2) line path "String ended in \\"
-                                              else if (bs `C.index` 1) `elem` "nt\\\""
-                                                   then (case bs `C.index` 1 of
-                                                           'n'  -> '\n'
-                                                           't'  -> '\t'
-                                                           '\\' -> '\\'
-                                                           '"'  -> '"') : loop (n + 2)
-                                                   else if n + 2 == bslen then lError (col + n + 3) line path "Oops..."
-                                                        else let s = C.unpack (subseq bs (n + 1) (n + 3))
-                                                             in if all isHex s
-                                                                then getHexChar s : loop (n + 3)
-                                                                else lError (col + n + 2) line path "Expected two-char hex"
-               | otherwise                  = bs `C.index` n : loop (n + 1)
-        bslen = C.length bs
-
-getHexChar :: String -> Char
-getHexChar [c0,c1] = toEnum $ charToHex c0 * 16 + charToHex c1
-
-{-
-lexline :: String -> [Indent]
-lexline s = let (_, Indent y) = indent $ leX ("$line$", s)
-            in [y] -}
+        loop n | n == C.length bs       = []
+               | bs `C.index` n == '\\' = if n + 1 == C.length bs then lError (col + n + 2) line path "String ended in \\"
+                                          else if escapeChar (bs `C.index` 1)
+                                               then (case bs `C.index` 1 of
+                                                       'n'  -> '\n'
+                                                       't'  -> '\t'
+                                                       '\\' -> '\\'
+                                                       '"'  -> '"') : loop (n + 2)
+                                               else if n + 2 == C.length bs then lError (col + n + 1) line path "Bad escape char" 
+                                                    else case getHexChar $ take 2 $ drop (n + 1) bs of
+                                                           Just c -> c : loop (n + 3)
+                                                           _      -> lError (col + n + 1) line path "Bad escape char"
+               | otherwise              = bs `C.index` n : loop (n + 1)

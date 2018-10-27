@@ -10,14 +10,9 @@ import Ubi
 WASP :: IO ()
 WASP = do args    <- getArgs
           current <- getCurrentDirectory
-          files   <- getFiles current
-          let lexed           = mapFolder []              novalex files
-              indented        = mapFolder []              indent  lexed
-              parserSpecifics =        getParserSpecifics         indented
-              parsed          = mapFolder parserSpecifics parse   indented
-              protos          = getProtos parserSpecifics         parsed
-              compiled        = mapFolder protos          compile parsed
+          undone  <- getFiles current
+          let lexed    = mapFolder undone    novalex
+              indented = mapFolder lexed     indent
+              parsed   = mapFolder indented (parse   (getPSpec  indented))
+              compiled = mapFolder parsed   (compile (getProtos parsed))
           writeComp compiled
-          if "lib" `elem` args
-          then writeLib =<< makeLib current
-          else return ()

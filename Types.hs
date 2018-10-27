@@ -50,7 +50,7 @@ data Pattern = Identifier    String'
 
  -- CompFN
 
-type CompFN = [[CompSpec]] -> [ParserSpec] -> FilePath -> CompFile -> CompFile
+type CompFN = FilePath -> CompFile -> CompFile
 
  -- File
 
@@ -60,23 +60,23 @@ data File = Folder   FilePath Folder
 
 countFiles :: Folder -> Int
 countFiles (x:xs) = case x of
-                      CompFile _ _   -> 1              + countFiles xs
-                      Folder   _ fol -> countFiles fol + countFiles xs
+                      CompFile _ _  -> 1             + countFiles xs
+                      Folder   _ fd -> countFiles fd + countFiles xs
 countFiles []     = 0
 
-mapFolder :: [ParserSpec] -> CompFN -> Folder -> Folder
-mapFolder parserSpec fn (x:xs) = case x of
-                                CompFile p f   -> let file = fn parserSpec p f
-                                                  in CompFile p file : mapFolder parserSpec fn xs
-                                Folder   p fol -> Folder p (mapFolder parserSpec fn fol) : mapFolder parserSpec fn xs
-mapFolder _          _  []     = []
+mapFolder :: Folder -> CompFN -> Folder
+mapFolder (x:xs) fn = case x of
+                        CompFile p fl -> let file = fn p fl
+                                         in CompFile p file : mapFolder xs fn
+                        Folder   p fd -> Folder p (mapFolder fd fn) : mapFolder xs fn
+mapFolder []     _  = []
 
-mapFolderM :: FolderM -> Folder -> IO ()
-mapFolderM act (x:xs) = case x of
-                       CompFile p f   -> do act p f
-                       Folder   _ fol -> do mapFolderM act fol
-                                            mapFolderM act xs
-mapFolderM _   []     = return ()
+mapFolderM :: Folder -> FolderM -> IO ()
+mapFolderM (x:xs) act = case x of
+                          CompFile p fl -> do act p fl
+                          Folder   _ fd -> do mapFolderM fd act
+                                              mapFolderM xs act
+mapFolderM []     _   = return ()
 
  -- Folder
 
