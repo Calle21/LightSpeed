@@ -11,12 +11,12 @@ annotations = packit ["mutable",
 
 charword s' = isJust (s' `lookup` charwords)
 
-charwords = packassoc [("nul"  ,   '\NUL')
-                     , ("tab"  ,   '\t')
+charwords = packassoc [("nul", '\NUL')
+                     , ("tab", '\t')
                      , ("newline", '\n')
-                     , ("space",   ' ')]
+                     , ("space", ' ')]
 
-charwordChar s' = fromJust $ (s' `lookup` charwords)
+charwordToChar s' = fromJust $ s' `lookup` charwords
 
 escapeChar = (`C.elem` escapeChars)
 
@@ -25,6 +25,8 @@ escapeChars = C.pack "nt\\\""
 isPathNova p = C.pack (takeExtension p) == C.pack ".nova"
 
 isPathUnnova p = C.pack (takeFileName p) `arrayElem` unnovas
+
+multiline = C.pack " ####################\n"
 
 punctuation c = c `C.elem` punctuations
 
@@ -115,6 +117,8 @@ synOpname     s' = C.unpack s' =~ ("^[\\\\" ++ C.unpack specialChars ++ "]+$") :
 synOpnameText s' = C.unpack s' =~ "^`[a-z]{2..}`$" :: Bool
 
 synOption     s' = C.unpack s' =~ "^%[a-z]{2..}%$" :: Bool
+
+synRatio      s' = C.unpack s' =~ "^-?\\d+/-?\\d+$" :: Bool
 
 synSpecial    s' = C.unpack s' =~ "^\*[a-zA-Z0-9]+\*$" :: Bool
 

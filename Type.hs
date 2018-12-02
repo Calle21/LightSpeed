@@ -109,6 +109,7 @@ data Tok = Keyword       String'
          | TokChar       Char
          | TokFloat      Float
          | TokInt        Int
+         | TokRatio      Int Word
          | TokString     String'
          | Type          String'
          | Vartype       String'

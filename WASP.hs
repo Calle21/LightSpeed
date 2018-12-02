@@ -11,7 +11,7 @@ WASP :: IO ()
 WASP = do args    <- getArgs
           current <- getCurrentDirectory
           undone  <- getFiles current
-          let lexed    = mapFolder undone    novalex
+          let lexed    = mapFolder undone    lex'
               indented = mapFolder lexed     indent
               parsed   = mapFolder indented (parse   (getPSpec  indented))
               compiled = mapFolder parsed   (compile (getProtos parsed))

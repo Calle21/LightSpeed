@@ -1,0 +1,8 @@
+index (<Array E> arr, Int i)
+  w       = bitsize E
+  p       = packed  E
+  bbefore = w * i
+  wstart  = bbefore / wordbitsize
+  wend    = (bbefore + w - 1) / wordbitsize
+
+  

@@ -18,12 +18,12 @@ tokToString t = case t of
                   TokInt n      -> C.pack $ show n
                   TokString s   -> C.pack $ show $ C.unpack s
                   Type s        -> s
-                  Vartype s     -> s
+                  Typevar s     -> s
 
-indentToString :: Indent -> String'
+indentToString :: Line -> String'
 indentToString (Line _ xs) = C.replicate (pred (fst $ head xs)) ' ' `C.append` C.pack " " `C.intercalate` ((tokToString . snd) `map` xs) `C.append` C.pack "\n"
-indentToString (Indent ys) | colOf (head ys) == 1 = separate $ indentToString `map` ys
-                           | otherwise                  = C.concat (indentToString `map` ys)
+indentToString (Fold ys) | colOf (head ys) == 1 = separate $ indentToString `map` ys
+                         | otherwise                  = C.concat (indentToString `map` ys)
   where
   separate :: [String'] -> String'
   separate (x:y:xs) = x `C.append` (if C.head y /= ' ' then C.pack "\n" else C.empty) `C.append` separate (y:xs)

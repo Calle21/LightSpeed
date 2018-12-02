@@ -31,6 +31,22 @@ elt `arrayElem` arr = loop i0
          | otherwise      = loop (i + 1)
   (i0,i1) = bounds arr
 
+ -- charInBase
+
+charInBase :: Int -> Char -> Bool
+charInBase base c = charInt 36 c < base
+
+ -- charInt
+
+charInt :: Int -> Char -> Either String Int
+charInt base c = let n | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
+                       | c >= 'a' && c <= 'z' = fromEnum c - fromEnum 'a'
+                       | c >= 'A' && c <= 'Z' = fromEnum c - fromEnum 'A'
+                       | otherwise            = Left "Not numerable"
+                 in if n >= base
+                    then Left "Out of base"
+                    else Right n
+
  -- deleteIf
 
 deleteIf :: (a -> Bool) -> [a] -> [a]
@@ -43,15 +59,23 @@ deleteIf' fn (x:xs) | fn x      = xs
                     | otherwise = x : deleteIf' fn xs
 deleteIf' _  []     = []
 
- -- dropAndCountUntil'
+ -- countAndDropUntil
 
-dropAndCountUntil' :: (Char -> Bool) -> String' -> (Int, String')
-dropAndCountUntil' fn inp = loop 0
+countAndDropUntil :: (Char -> Bool) -> C.ByteString -> (Int, C.ByteString)
+countAndDropUntil fn inp = loop 0
   where
   loop n
     | n == C.length inp    = (n, C.empty)
     | fn (inp `C.index` n) = (n, C.drop n inp)
     | otherwise            = loop (n + 1)
+
+ -- dropLine
+
+dropLine :: C.ByteString -> Maybe C.ByteString
+dropLine inp = let n = C.elemIndex '\n' inp
+               in case n of
+                    Nothing -> Nothing
+                    Just n' -> Just $ C.drop (n' + 1) inp
 
  -- dropUntil
 
@@ -76,24 +100,26 @@ format s ss = loop s
     | otherwise = c : loop cs
   loop [] = ""
 
- -- Hex
+ -- getSign
+
+getSign :: String' -> (Int, String')
+getSign s' = if C.head s' == '-'
+             then (-1, C.tail s')
+             else (1, s')
+
+ -- hexToInt
 
 hexToInt :: Char -> Int
-hexToInt c | c >= '0' && c <= '9' = fromEnum c - fromEnum '0'
-           | c >= 'a' && c <= 'f' = fromEnum c - fromEnum 'a' + 10
-           | c >= 'A' && c <= 'F' = fromEnum c - fromEnum 'A' + 10
-           | otherwise            = error ("Not a hex char : " ++ [c])
+hexToInt c = case charInt 16 c of
+               Right i -> i
+               Left _  -> error "Not a hex char"
 
-getHexChar :: String' -> Maybe Char
-getHexChar bs = if C.length bs == 2 && all' isHex bs
-                then Just $ toEnum $ hexToInt (C.head bs) * 16 + (hexToInt (bs `C.index` 1))
-                else Nothing
+ -- isHexChar
 
-isHex :: Char -> Bool
-isHex c | c >= '0' && c <= '9' = True
-        | c >= 'a' && c <= 'z' = True
-        | c >= 'A' && c <= 'Z' = True
-        | otherwise            = False
+isHexChar :: Char -> Bool
+isHexChar c = case charInt 16 c of
+                Right _ -> True
+                Left  _ -> False
 
  -- isPathVisible
 
@@ -145,6 +171,41 @@ putFirst fn xs = case find fn xs of
                    Nothing -> xs
                    Just x  -> x : deleteIf' fn xs
 
+ -- readEscape
+
+readEscape :: String -> (Char,String)
+readEscape (_:e:xs) = let c = case e of
+                                't'  -> '\t'
+                                'n'  -> '\n'
+                                '"'  -> '"'
+                                '\\' -> '\\'
+                      in (c,xs)
+
+ -- readHex
+
+readHex :: String -> (Char,String)
+readHex (_:a:b:xs) = (toEnum $ digitToInt a * 16 + digitToInt b, xs)
+
+ -- readHexChar
+
+readHexChar :: String' -> Maybe Int
+readHexChar bs = if C.length bs == 2 && all' isHexChar bs
+                 then Just $ readint 16 bs
+                 else Nothing
+
+ -- readint
+
+readint :: Int -> String' -> Int
+readint base bs = if base > 0 && base < 37
+                  then let (sign, bs') = getSign bs
+                       in sign * loop bs' 0 0
+                  else error "Base can only be between 1 and 36"
+  where
+  loop bs' acc i | i == C.length bs = acc
+                 | otherwise        = case charInt base (bs `C.index` i) of
+                                        Right n -> loop bs' (acc * base + n, i + 1)
+                                        Left s  -> error s
+
  -- reverse apply
 
 infixl 1 &
@@ -154,10 +215,10 @@ infixl 1 &
 
  -- split
 
-split :: (Eq a) => a -> [a] -> [[a]]
-split elt xs = let (f,r) = break (==elt) xs
+split :: (a -> Bool) -> [a] -> [[a]]
+split fn xs = let (f,r) = break fn xs
                in if null r then [f]
-                  else f : split elt (tail r)
+                  else f : split fn (tail r)
 
  -- String'
 

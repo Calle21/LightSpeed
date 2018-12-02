@@ -185,8 +185,8 @@ data NIL = NILWord  String
 
  -- ParserSpec
 
-data ParserSpec = ParserSpec {parserSpecInfixs :: Map String' Fixity
-                            , parserSpecChains :: [(String',String')]}
+data PSpec = PSpec {fixities :: Map String' Fixity
+                  , chains   :: [(String',String')]}
 
  -- Pat
 
@@ -277,12 +277,19 @@ tok1String = tokString . tok1Tok
 
 type Tok2 = (Int, Int, Tok)
 
-tok2Line, tok2Col :: Tok2 -> Int
+tok2Line, tok2Col :: Tok2 -> Int -- depr
 tok2Line (ln,_,_) = ln
 tok2Col  (_,cl,_) = cl
 
-tok2Tok :: Tok2 -> Tok
+lineTok2, colTok2 :: Tok2 -> Int
+lineTok2 (ln,_,_) = ln
+colTok2  (_,cl,_) = cl
+
+tok2Tok :: Tok2 -> Tok -- depr
 tok2Tok (_,_,tk) = tk
+
+tokTok2 :: Tok2 -> Tok
+tokTok2 (_,_,tk) = tk
 
  -- TokP
 

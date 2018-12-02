@@ -11,7 +11,7 @@ main :: IO ()
 main = do current <- getCurrentDirectory
           files   <- getFiles current
           putStrLn ("Reading " ++ show (countFiles files) ++ " files")
-          let lexed    = mapDir [] novalex files
+          let lexed    = mapDir [] lex' files
               indented = mapDir [] indent  lexed
           mapDirM writeIndent indented
           putAllIndent current
