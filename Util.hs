@@ -12,7 +12,7 @@ p0 &&& p1 = (\arg -> p0 arg && p1 arg)
 
  -- all
 
-all' :: (Char -> Bool) -> String' -> Bool
+all' :: (Char -> Bool) -> C.ByteString -> Bool
 all' fn bs = loop 0
   where
   loop n | n == C.length bs    = True
@@ -102,7 +102,7 @@ format s ss = loop s
 
  -- getSign
 
-getSign :: String' -> (Int, String')
+getSign :: C.ByteString -> (Int, C.ByteString)
 getSign s' = if C.head s' == '-'
              then (-1, C.tail s')
              else (1, s')
@@ -188,14 +188,14 @@ readHex (_:a:b:xs) = (toEnum $ digitToInt a * 16 + digitToInt b, xs)
 
  -- readHexChar
 
-readHexChar :: String' -> Maybe Int
+readHexChar :: C.ByteString -> Maybe Int
 readHexChar bs = if C.length bs == 2 && all' isHexChar bs
                  then Just $ readint 16 bs
                  else Nothing
 
  -- readint
 
-readint :: Int -> String' -> Int
+readint :: Int -> C.ByteString -> Int
 readint base bs = if base > 0 && base < 37
                   then let (sign, bs') = getSign bs
                        in sign * loop bs' 0 0
@@ -220,9 +220,9 @@ split fn xs = let (f,r) = break fn xs
                in if null r then [f]
                   else f : split fn (tail r)
 
- -- String'
+ -- C.ByteString
 
-type String' = C.ByteString
+type C.ByteString = C.ByteString
 
  -- subseq
 

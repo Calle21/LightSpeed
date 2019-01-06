@@ -188,6 +188,21 @@ data NIL = NILWord  String
 data PSpec = PSpec {fixities :: Map String' Fixity
                   , chains   :: [(String',String')]}
 
+ -- ParseTree
+
+data ParseTree = Let     [(String,ParseTree)]
+               | Make    [(String,ParseTree)]
+               | Call    String [ParseTree]
+               | Literal Literal
+
+data Literal = Array     Type [ParseTree]
+             | Primitive Primitive
+
+data Primitive = Unsigned Word64
+               | Signed   Int64
+               | Float    Double
+               | Ratio    Ratio
+
  -- Pat
 
 data Pat = PatK String'

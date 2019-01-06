@@ -1,4 +1,4 @@
-module CLang.Interpret () where
+module Interpret () where
 
  -- Special functions:
  -- +, -, <, >
