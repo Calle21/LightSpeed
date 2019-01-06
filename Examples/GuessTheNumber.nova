@@ -1,0 +1,11 @@
+guessTheNumber
+  Int num = random 1 10
+  @loop
+    putStrLn "Guess between 1 and 10: "
+    guess = getInt
+    ? guess < num -> putStrLn "Too low"
+                     loop
+    ? guess > num -> putStrLn "Too hi"
+                     loop
+      else
+      putStrLn "Correct"

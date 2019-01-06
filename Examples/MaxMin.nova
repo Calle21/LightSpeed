@@ -1,0 +1,7 @@
+NUM max NUM a NUM b = ? a > b -> a
+                        else
+                        b
+
+NUM min NUM a NUM b = ? a < b -> a
+                        else
+                        b

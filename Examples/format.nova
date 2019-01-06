@@ -1,0 +1,17 @@
+Void format String templ [String] args
+  @loop i = 0
+     let c = templ ! i
+     ? c == 'nul -> void
+     ? c == '%   -> let c = templ ! i + 1
+                    ? c == 'nul -> error "Format string ended at %"
+                    ? c == '%   -> putChar '%
+                                   loop (i + 2)
+                      else
+                      let (n,i) = readInt 10 templ (i + 1)
+                      ? templ ! i == '% -> putString (args ! n)
+                                           loop (i + 1)
+                        else
+                        error "Expected another %"
+       else
+       putChar c
+       loop (i + 1)

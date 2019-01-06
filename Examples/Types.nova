@@ -1,0 +1,14 @@
+type Even Int a = a % 2 == 0
+
+type Odd Int a = not (Even a)
+
+type Table ELT = (Array ELT, Int)
+
+type Sequence ELT = (Array ELT, Int, Int)
+
+type Cons ELT = (ELT, Cons ELT)
+
+union List ELT = Cons ELT | Void
+
+type Void = ()
+void = ()
