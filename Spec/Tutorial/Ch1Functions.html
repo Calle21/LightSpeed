@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Functions</title>
+                <link rel="stylesheet" href="../Style.css" />
+        </head>
+        <body>
+                <h3>The basics</h3>
+                <p>As a functional language, functions obviously plays a central role. Functions are defined in a similar way to most imperative languages however. Here is an example</p>
+                <pre>
+                Int biggestoftwo Int a Int b = if a > b then a else b
+                </pre>
+                <p>First the return type is written. Then follows the function name, then the parameter list. The parameter list does not include parens or commas. This aids in readability and avoids bugs. The body of this function consists of a simple if statement. The <i>></i> is an infix operator defined in the standard library</p>
+                <pre>
+                Bool isfunctionname String s
+                  all (islower || isdigit) s & some islower s
+                </pre>
+                <p>This example shows the usage of six standard functions. <i>all</i>, <i>islower</i>, <i>isdigit</i>, <i>some</i>, <i>&</i> and <i>||</i>. <i>all</i> and <i>some</i> takes a sequence of any type and applies a predicate to all or some elements of that sequence. <i>islower</i> and <i>isdigit</i> are two predicates. <i>&</i> is the boolean 'and' operator, and works in the same way as C's <i>&&</i>. That is, it will short-circuit evaluation once some expression returns false. <i>||</i> is a predicate constructor, which combines two predicates into one.</p>
+                <p>A function name in Nova consists of a string of lower-case letters and numbers, where at least one character is a letter.</p>
+                <h3>Tuples</h3>
+                <i>isfunctionname</i> demonstrated the use of a tuple. If you're an imperative programmer you could think of tuples as structs, only that they do not need to be defined with a name. The tuple in the above example however, only had one element in it. This is not a real tuple, and will be treated as any other value, except that the precedence of execution changes. Tuples are, like in mathematics, evaluated with a higher precedence than other expressions.</p>
+                <p>To create tuples with several elements, the expressions within the tuple are simply just separated with semi-colons, or are lined up with the same level of indentation</p>
+                <pre>
+                (a, b, c)
+                </pre>
+                <p>and</p>
+                <pre>
+                (a
+                 b
+                 c)
+                </pre>
+                <p>would be two ways to define the same tuple.</p>
+                <p>At machine code level, tuples in Nova are always represented as a pointer to the tuple itself. That is, the elements of the tuple will not occupy several registers for example.</p>
+        </body>
+</html>
