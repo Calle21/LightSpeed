@@ -26,8 +26,6 @@ isPathNova p = C.pack (takeExtension p) == C.pack ".nova"
 
 isPathUnnova p = C.pack (takeFileName p) `arrayElem` unnovas
 
-multiline = C.pack " ####################\n"
-
 punctuation c = c `C.elem` punctuations
 
 punctuations = C.pack "()[]{}.,@#$"
@@ -48,18 +46,12 @@ reserveds = packit ["->",
                     "enum",
                     "Fields:",
                     "Globals:",
-                    "has",
-                    "if",
                     "infixl",
                     "infixr",
                     "intermediate",
-                    "is",
                     "let",
                     "Locals:",
-                    "the",
                     "Methods:",
-                    "mkarray",
-                    "module",
                     "no",
                     "postfix",
                     "prefix",
@@ -111,6 +103,8 @@ synInt        s' = C.unpack s' =~ "^-?\\d+$" :: Bool
 
 synKeyword    s' = let s = C.unpack s'
                    in s =~ "^[a-z0-9]*'?$" && any isLower s
+
+synMultiline  s' = C.unpack s' =~ "^ #{5,}\\n"
 
 synOpname     s' = C.unpack s' =~ ("^[\\\\" ++ C.unpack specialChars ++ "]+$") :: Bool
 

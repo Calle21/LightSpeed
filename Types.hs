@@ -6,6 +6,14 @@ import qualified Data.Set as Set
 import Ubi
 import Util(String')
 
+data TopExpr = Nick
+               Type
+               Definition
+
+ -- Assembly
+
+data Assembly = 
+
  -- Binding
 
 data Binding = Binding {locals  :: [Binding],
@@ -42,7 +50,7 @@ data Code = Array      Type   [Code]
           | Primitive  Prim    Integer
           | The        Type    Code
           | Throw      String' Code
-          | Tuple             [Code]
+          | Tuple      [Code]
           deriving (Eq, Ord, Read, Show)
 
 data Pattern = Identifier    String'
@@ -196,12 +204,16 @@ data ParseTree = Let     [(String,ParseTree)]
                | Literal Literal
 
 data Literal = Array     Type [ParseTree]
+             | Tuple     [ParseTree]
              | Primitive Primitive
 
 data Primitive = Unsigned Word64
                | Signed   Int64
                | Float    Double
                | Ratio    Ratio
+
+data Assembly = Assembly {fname :: String
+                        , 
 
  -- Pat
 

@@ -1,13 +1,12 @@
-module CLang.Parse.Use (parseUse) where
+module Parse.Use (parseUse) where
 
-import qualified CLang.Mods as Mod
-import CLang.Mods(getMod)
-import CLang.Types
-import CLang.Parse.Util
+import qualified Mods as Mod
+import Mods(getMod)
+import Types
+import Parse.Util
 
 parseUse :: Indent -> IO Setup
-parseUse (Indent [(Line 1 xs)]) | xs `match` listOf1 (Keyword "->") isEnd (one (isType `or` isVartype)) =
-  let ss = getS `map` (fst $ getList1 isEnd xs)
-  in do mods' <- getMod `mapM` tail ss
-        return ((head ss, Mod.empty) : mods')
+parseUse (Indent ys) | all (`match` one isType) ys = mapM getMod ys
+  where
+  getMod (Line 1 (_,Type s)) = getMod s
 parseUse _ = error "Couldn't parse use file"

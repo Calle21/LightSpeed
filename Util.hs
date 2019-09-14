@@ -77,6 +77,10 @@ dropLine inp = let n = C.elemIndex '\n' inp
                     Nothing -> Nothing
                     Just n' -> Just $ C.drop (n' + 1) inp
 
+dropLine' :: C.ByteString -> C.ByteString
+dropLine' inp = let n = fromJust $ C.elemIndex '\n' inp
+                in C.drop (n + 1) inp
+
  -- dropUntil
 
 dropUntil :: (a -> Bool) -> [a] -> [a]

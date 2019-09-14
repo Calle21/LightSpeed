@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Basic syntax</title>
+                <link rel="stylesheet" href="Style.css" />
+        </head>
+        <body>
+                <h3>Basic syntax</h3>
+                <p>Nova has a similar syntax to C, albeit cleaner and more flexible. Here is an example of a basic function definition.</p>
+                <pre>
+                Int biggestoftwo Int a Int b
+                  a > b ? a
+                  b</pre>
+                <p>All typenames begin with an upper-case letter, followed by a string of lower-case, upper-case and numbers. The regexp would look like this</p>
+                <p><b>[A-Z][a-zA-Z0-9]*</b></p>
+                <p>And additionally, the string must contain at least one number or lower-case letter. Symbols consisting of just upper-case letters are interpreted as type-variables, which we will get into later.</p>
+                <p>Function names consist of a string of lower-case and numbers. The regexp would look like this</p>
+                <p><b>[a-z0-9]+</b></p>
+                <p>Where at least one character is a letter. Symbols containing just digits are interpreted as numbers</p>
+                <p>If statements are made up of a predicate followed by a question mark. If the predicate returns true, the code after the question mark is executed. Otherwise execution continues to the next statement.</p>
+                <p>As seen above, the return type of a function is written first, followed by the function name, which is followed by a parameter list. The parameter list does not include parentheses or commas, to improve readablility and minimize bugs.</p>
+                <pre>
+                Bool isfunctionname String s
+                  all (lower || digit) s & some lower s
+                </pre>
+                <p>Above is a demonstration of a tuple. Tuples are made up of parentheses, with expressions within them. In this case there is only one expression within the tuple, a predicate, and thus the tuple is only used for evaluation precedence purposes.</p>
+        </body>
+</html>

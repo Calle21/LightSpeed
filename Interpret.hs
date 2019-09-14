@@ -4,7 +4,7 @@ module Interpret () where
  -- +, -, <, >
 
 data Environment = Environment {global :: [Map String ]
-                                local  :: [(String,)]}
+                              , local  :: [(String,)]}
                  deriving (Read, Show)
 
 interpret :: Environment -> Indent -> Token

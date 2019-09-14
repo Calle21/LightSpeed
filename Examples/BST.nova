@@ -1,18 +1,18 @@
 type Set LEAF = (Set LEAF left = void, LEAF leaf, Set LEAF right = void) | Void
 
 Set LEAF insert Set LEAF set LEAF leaf
-  set = set ? leaf > set.leaf ? insert set.right leaf
-              leaf < set.leaf ? insert set.left  leaf
+  set = set ? leaf > set.leaf ? set {left = set.left, leaf = set.leaf, right = insert set.right leaf}
+              leaf < set.leaf ? set {left = insert set.left leaf, leaf = set.leaf, right = set.right}
               set
-  Set {leaf = leaf}
+  {leaf = leaf}
 
 pure Set LEAF remove Set LEAF set LEAF leaf
   set = set ? leaf > set.leaf ? set {left = set.left, leaf = set.leaf, right = remove set.right leaf}
               leaf < set.leaf ? set {left = remove set.left leaf, leaf = set.leaf, right = set.right}
               @percolate l = set.left r = set.right
-                random ? r = r ? Set {left = l, leaf = r.leaf, right = percolate r.left r.right}
+                random ? r = r ? set {left = l, leaf = r.leaf, right = percolate r.left r.right}
                          l
-                l = l  ? Set {left = percolate l.left l.right, leaf = l.leaf, right = r}
+                l = l  ? set {left = percolate l.left l.right, leaf = l.leaf, right = r}
                 r
   void
 

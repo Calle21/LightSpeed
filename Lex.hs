@@ -7,13 +7,13 @@ import Types
 import Ubi
 import Util
 
-lex' :: CompFN
+lex' :: Sweep
 lex' path (Undone s) = Lexed $ loop 1 1 s
   where
   loop :: Int -> Int -> C.ByteString -> [Tok2]
   loop col line inp
     | C.null inp = []
-    | otherwise  = if col == 1 && multiline `C.isPrefixOf` inp then multiLine (line + 1) (C.drop 22 inp)
+    | otherwise  = if col == 1 && synMultiline inp then multiLine (line + 1) dropLine' inp
                    else case C.head inp of
                           ' '  -> let (n, inp') = countAndDropUntil (/=' ') inp
                                   in loop (col + n) line inp'
@@ -24,11 +24,11 @@ lex' path (Undone s) = Lexed $ loop 1 1 s
                                        in (col, line, tok) : loop (col + len) line inp'
     where
     multiLine :: C.ByteString -> [Tok2]
-    multiLine line inp | multiline `C.isPrefixOf` inp = loop 1 (line + 1) (C.drop 22 inp)
-                       | otherwise                    = let inp' = dropLine inp
-                                                        in case inp' of
-                                                             Nothing    -> lError (-1) line "File ended in multiline comment"
-                                                             Just inp'' -> multiLine (line + 1) inp''
+    multiLine line inp | synMultiline inp = loop 1 (line + 1) dropLine' inp
+                       | otherwise        = let inp' = dropLine inp
+                                            in case inp' of
+                                                 Nothing    -> lError (-1) line "File ended in multiline comment"
+                                                 Just inp'' -> multiLine (line + 1) inp''
     token :: Char -> (Tok, Int, C.ByteString)
     token c = if punctuation c then (Punctuation c, 1, C.tail inp)
               else case c of

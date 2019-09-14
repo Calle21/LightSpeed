@@ -1,0 +1,6 @@
+pure A <- B memoize A <- B fn
+  Map B A tree = empty
+  arg -> result = lookup arg tree ? result
+         result = fn arg
+         tree := insert tree arg result
+         result

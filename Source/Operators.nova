@@ -1,0 +1,21 @@
+a + b = intermediate
+        return a + b
+
+a - b = intermediate
+        return a - b
+
+a * b = intermediate
+        return a * b
+
+a / b = intermediate
+        return a / b
+
+Bool a < b = intermediate
+             if a < b -> true
+             return 0
+             true: return 1
+
+Bool a > b = intermediate
+             if a > b -> true
+             return 0
+             true: return 1

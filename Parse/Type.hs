@@ -1,7 +1,17 @@
 module Nova.Parse.Type (parseType) where
 
-parseType :: SpecialParse
-parseType (setup, path, y:ys) =
+parseType :: [Tok1] -> [Line] -> (TopExpr, [Line])
+parseType xs ys =
+  case one isType xs of
+    Just xs' -> let (_,Type name) = head xs
+                in case xs' of
+                     (_,Equals):xs'' ->
+
+    Nothing  -> error "Couldn't parse type (name)"
+
+
+
+
   let (ln,xs) = theLine y path
   in if xs `match` aTypeName >=> one isEqual
      then let name        = gets $ head xs

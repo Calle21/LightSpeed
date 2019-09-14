@@ -1,4 +1,4 @@
-enum Bool = false | true
+type Bool = false | true
 
 type Even Int a = a % 2 == 0
 
@@ -14,3 +14,9 @@ type List ELT = Cons ELT | Void
 
 type Void = ()
 void = ()
+
+type Map KEY VALUE = (Map KEY VALUE left, KEY key, VALUE value, Map KEY VALUE right) | Void
+Map K V empty = void
+
+type Set VALUE = (Set VALUE left, VALUE value, Set VALUE right) | Void
+Set V empty = void
