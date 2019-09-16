@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Optimizations</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>Since Nova is a purely functional programming language, some optimizations are necessary to make it run fast. Here are listed the mandatory optimizations.</p>
+                <h3>Reuse of no-longer needed structures</h3>
+                <p>This is a super important optimization. In other functional languages, Haskell for example, to update a single element in an array, the entire array has to be copied. This is obviously extremely inconvenient, and thus "functional" data structures, like the finger tree, has been invented to more efficiently handle sequences. However, in Nova, the compiler has to be able to figure out whether the old array is actually needed or not, after an update. And if in fact, the old array will not be needed, then the compiler has to reuse the old array. That is, rather than copying the entire array and changing one element, that one element will just be changed, as in any imperative language, and the old array will serve as the new array, in a purely functional manner. However, if the old array is still needed somehow, or can't be proven to not be needed in the future, then a copy of the array would have to be made.</p>
+        </body>
+</html>
