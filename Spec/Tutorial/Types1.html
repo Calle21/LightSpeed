@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Types</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>The type system in Nova is quite rich, so there will be three chapters explaining the type system</p>
+                <p>The type system is quite similar to the type system of Haskell. There are type variables. Here are some examples of types from the standard library</p>
+                <pre>
+                type String = (Array Char, Int)
+                type Char = Int
+                type Int = Signed
+                type Set LEAF = (Set LEAF left, LEAF leaf, Set LEAF right) | Void
+                type Void = ()
+                void = ()
+                </pre>
+                <h3>Primitive types</h3>
+                <p>In Nova there are a few primitive types, from which the rest of the types are built. The primitive types are...</p>
+                <ul>
+                        <div>Signed</div>
+                        <div>Unsigned</div>
+                        <div>Float</div>
+                        <div>Array E</div>
+                </ul>
+                <p>Additionally there are also tuples which may hold any combination of types within its' elements</p>
+                <p>The <i>Signed</i> and <i>Unsigned</i> types may be accompanied by an integer, defining the bit width of the type. For example, <i>type Int24 = Signed 24</i> would create a signed integer type occupying 24 bits.</p>
+                <p>The float type is simply just a float, occupying one word of memory</p>
+                <p>The array type is accompanied by a type variable, <i>E</i>, standing for Element. An array is just a sequence of elements allocated within one object (an object being a space allocated as one unit).</p>
+                <p>So, to explain the types given as example. The String type is a tuple of two. One element of the tuple contains an array of characters, and the other element of the tuple an Int saying how long the string is.</p>
+                <p>The Char type is simply just a synonym for Int.</p>
+                <p>The Int is simply just a signed value occupying one word of memory</p>
+                <p>The built in Set type is a binary search tree, where each node holds an element, the leaf, and two branches. Notice that the Set type is actually also a union. The tree has to end somewhere, and when it does, the branch will simply just hold a Void value, which is technically speaking a tuple of zero elements. The library also defines the function <i>void</i> which returns an empty tuple.</p>
+                <p>The Set type also demonstrates the use of a type variable, LEAF. This means that there can be many different types of Sets. For example, Set Int would be a set holding integers, and Set Char would be a set holding characters, and the two would be two completely distinct types.</p>
+        </body>
+</html>
