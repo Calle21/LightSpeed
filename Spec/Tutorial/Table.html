@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>The Table type</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>In many imperative languages, the array is the "base" sequence. In many functional languages it is the list. In Nova, it is neither. It is the "table" type which is the standard sequence type. It is mostly just an array though, but accompanied with a number displaying the length of the array. So, it is a kind of "safe" array. In the standard library it is defined like this</p>
+                <pre>
+                type Table E = (Array E, Int)
+                </pre>
+                <p>Very simple. That this is the "base" sequence of the language is demonstrated by the dedication of the angular brackets to syntactically signify the table. That is, [Int] is the same as writing Table Int.</p>
+        </body>
+</html>

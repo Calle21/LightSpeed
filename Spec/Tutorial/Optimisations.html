@@ -12,5 +12,7 @@
                 <p>Nova makes a distinction between pure and impure computations. A pure computation, called a function, is something which given the same arguments alway returns the same result, and does not have any side-effects. A Nova compiler is forced to execute calls to functions at compile-time when the arguments are known at compile time.</p>
                 <h3>Tail-call recursion</h3>
                 <p>Ofcourse. Tail-call recursion is an essential optimization for any functional language. Loops doesn't really exist. Instead recursion is used, and in order not to overflow the stack, and to make the code somewhat faster, tail-calls are transformed into simple jumps, rather than function calls.</p>
+                <h3>Automatic stack allocation</h3>
+                <p>Objects can be allocated in two places. On the stack and on the heap. Objects in the heap are garbage collected. This is very flexible but but somewhat time-consuming. Objects on the stack however are automatically discarded once the scope runs out. Some objects are only used within a limited scope, and when possible, the compiler is forced to allocate such objects on the stack, as to minimize the number of objects on the heap and make programs run faster and more memory-efficient.</p>
         </body>
 </html>

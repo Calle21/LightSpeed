@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Lexing</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>Lexing is the first step in the Nova compiler. The lexer will take a stream of characters and return a list of tokens. Each token in turn will be accompanied with a column and line number. These are the different kinds of tokens that exist.</p>
+                <ul>
+                        <div>Function name</div>
+                        <div>Operator name</div>
+                        <div>Punctuation</div>
+                        <div>Reserved keyword</div>
+                        <div>Character</div>
+                        <div>Float</div>
+                        <div>Int</div>
+                        <div>Ration</div>
+                        <div>String literal</div>
+                        <div>Type name</div>
+                        <div>Type variable</div>
+                </ul>
+                <p>The lexing algorithm could be described as a loop. Apart from the stream of characters, there will also be two counter variables for the current column and line. When the loop starts these will be set to 1. And there is also one accumulator variable that will accumulate tokens. These are the steps of the algorithm</p>
+                <ol>
+                        <div>If end of stream is encountered, return the accumulated list of tokens</div>
+                        <div>If the character is a space, increment the column counter and restart the loop at the next character in the stream</div>
+                        <div>If the character is a newline, reset the column counter to 1, increment the line counter with one, and restart the loop at the next character.</div>
+                        <div>If a punctuation character is encountered, create a punctuation token with current line and column numbers with the char in it and add it to the accumulator (it will probably be pushed onto it).</div>
+                        <div>If a special character is encountered, "eat" the stream as long as there are special characters in it, extract the special characters and put them in a token. Update column counter appropriately, push the token and restart the loop</div>
+                        <div>If a legal name character is encountered, do the same as for special characters but with legal name characters</div>
+                </ol>
+        </body>
+</html>
