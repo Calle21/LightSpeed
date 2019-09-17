@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Inline functions</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>In Nova, recursion is used a lot rather than looping. At machine-code level, the code should look very similar due to some optimizations, most notably tail-call recursion. However, at the code of the level of the programmer, it will look quite different</p>
+                <p>To use recursion in for example C, or even Haskell, you'd have to define a separate function somewhere and call that function. However, in Nova, you can define function "inline". To illustrate, here is an example of a binary-search program</p>
+                <pre>
+                binsearch Array Int arr Int num
+                  @rec start = 0 end = soo arr - 1
+                    start > end ? void
+                    num0 = arr ! mid#((start + end) / 2)
+                    num0 > num ? rec start = mid + 1 end = end
+                    num0 < num ? rec start = start end = mid - 1
+                    mid
+                </pre>
+                <p>The <i>@</i> is a special character used to define inline functions. If you come from Scheme, you can see this as a let-expression with a tag. Basically, within the scope of the <i>@</i> expression itself, there will be a function called "rec" which you can call, which is the <i>@</i> expression. The return type of binsearch, and the types of the variables start, end and num0 will all be automatically derived by the compiler. The return type is "Int | Void", and the variables are all integers. the <i>#</i> is used to bind a variable "inline". That is, the compiler will automatically create a variable called "mid" with an appropriate scope. More on this later. When we recurse we use the parameter names. This is not required, but can be used with any function optionally. The <i>?</i> are if-statements, which can easily be nested as demonstrated. If we find the number, we return the index at which it was found. If not found, then the start index will be higher than the end index, and we return void. the "soo" function stands for "Size Of Object", and can be used on any object. This returns the length of the array in our case. It is not a safe function however. If the elements had occupied more than one word each, the value would not be the length of the array. The <i>!</i> is the index operator, and has a very low precedence.</p>
+        </body>
+</html>
+

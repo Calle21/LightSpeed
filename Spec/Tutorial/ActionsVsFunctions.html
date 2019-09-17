@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Actions vs. functions</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>In Nova there are two kinds of computations. Actions nad functions. An action is anything with a side-effect, and a function is anything without.</p>
+                <p>The reason to make this distinction is simple. Efficiency. An action is not something that you'd like to execute at compile-time. However, a function, which is pure, is something that you'd definitely want to execute at compile-time if you can. And in Nova, the compiler must do this when possible.</p>
+                <p>Techically speaking, an action is any function which in its' machine-code executes a syscall. That is, it communicates with the operating system somehow. When it does this, it ceases to be a function, and becomes an action instead. Actions are never executed at compile-time.</p>
+        </body>
+</html>
+                
