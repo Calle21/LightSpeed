@@ -6,5 +6,28 @@
         </head>
         <body>
                 <p>Nova is similar in appearance to many imperative languages. However, it is a purely functional language. What this means is that structures and variables are immutable. There are short-cuts around this to make the code more efficient, and even some unsafe cheats to be used in special exceptional cases, however, for safety, clarity and convenience sake, everything is immutable by default.</p>
+                <p>To demonstrate some code, here is the standard hello world program</p>
+                <pre>
+                Void helloworld String name
+                  format "Hello world, %0%" [name]
+                </pre>
+                <p>The 'Void' type is an empty tuple (more on this later), the '[name]' means we're creating a table with one element in it, the string given as argument (more on tables later). 'format" is like printf. the '%0%' syntax means that we're inserting the 0:th element from the table given to format. So, if your name is, say, Steven, and you do
+                <code>
+                        helloworld "Steven"
+                </code>
+                <p>That is, you call the function 'helloworld' with the argument "Steven", then the function should print
+                <code>
+                        Hello world, Steven
+                </code>
+                <p>To demonstrate some more code, and Nova's peculiar if syntax, here is another very simple program</p>
+                <pre>
+                String afunction Int a
+                  a == 0 >> "Zero"
+                  a == 1 >> "One"
+                  a == 2 >> "Two"
+                  "Something else"
+                </pre>
+                <p>If-statements in Nova are made up simply of a predicate followed by the '>>' symbol. A predicate is simply any expression that returns a boolean value. If the boolean is true, then the code after the '>>' is executed. Otherwise execution continues to the next statement in the block.</p>
+                <p>The '"Something else"' is actually not mandatory. If you do not leave any final 'else' statement after a series of predicates, then the entire if-structure will return void. However, in this case that would not have been possible, and would have caused a type error, because we've already defined the return type of our function to be of 'String'</p>
         </body>
 </html>

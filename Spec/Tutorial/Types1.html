@@ -8,10 +8,10 @@
                 <p>The type system in Nova is quite rich, so there will be three chapters explaining the type system</p>
                 <p>The type system is quite similar to the type system of Haskell. There are type variables. Here are some examples of types from the standard library</p>
                 <pre>
-                type String = (Array Char, Int)
-                type Char = Int
+                type String = [Char]
+                type Char = Signed 8
                 type Int = Signed
-                type Set LEAF = (Set LEAF left, LEAF leaf, Set LEAF right) | Void
+                type Set LEAF = set (Set LEAF left, LEAF leaf, Set LEAF right) | Void
                 type Void = ()
                 void = ()
                 </pre>
@@ -21,16 +21,27 @@
                         <div>Signed</div>
                         <div>Unsigned</div>
                         <div>Float</div>
-                        <div>Array E</div>
+                        <div>Array <i>dim</i> E</div>
                 </ul>
                 <p>Additionally there are also tuples which may hold any combination of types within its' elements</p>
                 <p>The <i>Signed</i> and <i>Unsigned</i> types may be accompanied by an integer, defining the bit width of the type. For example, <i>type Int24 = Signed 24</i> would create a signed integer type occupying 24 bits.</p>
                 <p>The float type is simply just a float, occupying one word of memory</p>
-                <p>The array type is accompanied by a type variable, <i>E</i>, standing for Element. An array is just a sequence of elements allocated within one object (an object being a space allocated as one unit).</p>
-                <p>So, to explain the types given as example. The String type is a tuple of two. One element of the tuple contains an array of characters, and the other element of the tuple an Int saying how long the string is.</p>
+                <p>The array type is accompanied by a type variable, <i>E</i>, standing for Element, and a dimension specifier. The dimension specifier is taken to be one if omitted. Otherwise it is simply just an integer saying how many dimensions exist. An array is just a sequence of elements allocated within one object (an object being a space allocated as one unit).</p>
+                <p>So, to explain the types given as example. The String type is a table of chars. This means that it is a tuple of two, where the first element contains an array of chars, and the second element an integer saying how long the array is. For compatibilitys sake the array of chars is null-terminated though.</p>
                 <p>The Char type is simply just a synonym for Int.</p>
                 <p>The Int is simply just a signed value occupying one word of memory</p>
                 <p>The built in Set type is a binary search tree, where each node holds an element, the leaf, and two branches. Notice that the Set type is actually also a union. The tree has to end somewhere, and when it does, the branch will simply just hold a Void value, which is technically speaking a tuple of zero elements. The library also defines the function <i>void</i> which returns an empty tuple.</p>
                 <p>The Set type also demonstrates the use of a type variable, LEAF. This means that there can be many different types of Sets. For example, Set Int would be a set holding integers, and Set Char would be a set holding characters, and the two would be two completely distinct types.</p>
+                <p>The lower case 'set' means that we want a constructor for this type. By writing this the language will automatically define a function called 'set' which takes three arguments (not as a tuple) and constructs a set-tuple.</p>
+                <h3>All types are synonyms</h3>
+                <p>In Nova, all type definitions are entirely symbolic. You may be familiar with 'typedef' of C. That is, if you define a type like this</p>
+                <pre>
+                type MyLittleTuple = (Int,Int)
+                </pre>
+                <p>And a function like this</p>
+                <pre>
+                mylittlefunction MyLittleTuple tup = 1of2 tup
+                </pre>
+                <p>Then you may as well have written '(Int,Int)' rather than 'MyLittleTuple'. However, by giving names to defined types we can save a LOT of typing, which is why we do it.</p>
         </body>
 </html>
