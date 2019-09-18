@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Types</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <pre>
+type Char = Signed 8
+
+type Cons E = cons (E car, List E cdr)
+
+type Int = Signed
+
+union List E = Cons E, Void
+
+type Map K E = map (Map K E left, K key, E element, Map K E right) | Void
+
+type Sequence E = sequence (Array E, Int, Int)
+
+type Set LEAF = set (Set LEAF left, LEAF leaf, Set LEAF right) | Void
+
+type String = [Char]
+
+type Table E = (Array E, Int)
+
+type Void = ()
+void = ()
+                </pre>
+        </body>
+</html>
