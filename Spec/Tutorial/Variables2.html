@@ -18,5 +18,7 @@
                 <h3>Reuse of variable space</h3>
                 <p>When a shadowing does occur, as above, the compiler is forced to figure out whether the old variable is still needed, or refered to, anywhere. If it isn't, the new variable will, if possible, reuse the memory allocated for the old variable. This makes the language work similarly to imperative languages, where variables are mutable.</p>
                 <p>So, to wrap up. The 'a' variable in our case will actually replace the 'a' parameter in memory.</p>
+                <h3>Shadowing</h3>
+                <p>Each library that you use is its' own namespace, and can be reached with the <i>library name</i>::<i>variable name</i> syntax. However, all libraries that a project uses will be merged into the standard namespace. This namespace contains all values. That is, functions do not have their own namespace. There are no "forbidden" variable names, except for reserved keywords, so any variable can shadow any other.</p>
         </body>
 </html>

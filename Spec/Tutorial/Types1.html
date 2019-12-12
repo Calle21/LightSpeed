@@ -18,15 +18,16 @@
                 <h3>Primitive types</h3>
                 <p>In Nova there are a few primitive types, from which the rest of the types are built. The primitive types are...</p>
                 <ul>
-                        <div>Signed</div>
-                        <div>Unsigned</div>
+                        <div>Signed <i>bitwidth range</i></div>
+                        <div>Unsigned <i>bitwidth range</i></div>
                         <div>Float</div>
                         <div>Array <i>dim</i> E</div>
                 </ul>
                 <p>Additionally there are also tuples which may hold any combination of types within its' elements</p>
-                <p>The <i>Signed</i> and <i>Unsigned</i> types may be accompanied by an integer, defining the bit width of the type. For example, <i>type Int24 = Signed 24</i> would create a signed integer type occupying 24 bits.</p>
+                <p>The <i>bitwidth</i>, <i>range</i> and <i>dim</i> are optional specifications.</p>
+                <p>bitwidth is simply just an integer specifying how many bits the integer should occupy. Range looks like a tuple, but one of the elements may be missing. For example, (4,) would specify an integer whose minimum value is 4, and has no upper bound.</p>
                 <p>The float type is simply just a float, occupying one word of memory</p>
-                <p>The array type is accompanied by a type variable, <i>E</i>, standing for Element, and a dimension specifier. The dimension specifier is taken to be one if omitted. Otherwise it is simply just an integer saying how many dimensions exist. An array is just a sequence of elements allocated within one object (an object being a space allocated as one unit).</p>
+                <p>The array type is accompanied by a type variable, <i>E</i>, standing for Element, and a dimension specifier. The dimension specifier is discussed more in the chapter on arrays. An array is just a sequence of elements allocated within one object (an object being a space allocated as one unit).</p>
                 <p>So, to explain the types given as example. The String type is a table of chars. This means that it is a tuple of two, where the first element contains an array of chars, and the second element an integer saying how long the array is. For compatibilitys sake the array of chars is null-terminated though.</p>
                 <p>The Char type is simply just a synonym for Int.</p>
                 <p>The Int is simply just a signed value occupying one word of memory</p>

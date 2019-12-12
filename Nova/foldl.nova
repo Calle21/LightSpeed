@@ -1,0 +1,8 @@
+foldl B <- B A fn {A} ls B start
+  null ls >> start
+  foldl fn ls.cdr (fn start ls.car)
+
+foldl B <- B A fn [A] arr B start
+  @rec i = 0 end = start
+    i > len arr >> end
+    rec (i + 1) (fn end (arr ! i))

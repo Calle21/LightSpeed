@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Arrays</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>Arrays are a central part of Nova. The approach to arrays is quite strict. Basically there are two classes of arrays. Arrays whose dimensions are known at compile time, and those who are not. If they're not know at compile time, the array will be accompanied by the dimensions as a structure.</p>
+                <pre>
+                Int getanelement Array 10x10 Int arr Int x Int y
+                  arr ! (x,y)
+                </pre>
+                <p>'getanelement' has to be given an array with the dimensions 10x10.</p>
+                <pre>
+                Int getanelement0 Array XxX Int arr Int x Int y
+                  arr ! (x,y)
+                </pre>
+                <p>'getanelement0' can be given any two-dimensional array. When the dimensions are not specified, then a tuple will be given instead, where the first element is the array, and the second another tuple specifying the dimensions.</p>
+                <p>If an array of known dimensions are given to 'getanelement0', then a tuple will be created with the dimension there. If an array with unknown dimensions (at compile time), is given to 'getanelement', then the dimensions will be checked, at runtime, and if they match up with the specified dimensions, then the array will be extracted from the tuple and given as the argument to 'getanelement'.</p>
+        </body>
+</html>

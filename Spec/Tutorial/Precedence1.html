@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <title>Precedence rules 1/2</title>
+                <link rel="stylesheet" href="../Style.css">
+        </head>
+        <body>
+                <p>This chapter will discuss some basic precedence rules. Inthe second chapter on precedence rules the more complicated rules regarding infix operators will be discussed. For now, infix operators simply have the same rules as in many other languages. Multiplication and division for example binds tighter than addition and subtraction etc.</p>
+                <p>Parentheses always has highest priority. Whatever is inside parenthese will be evaluated before anything outside of them. Regular postfix function calls have higher priority than infix functions. So, to give the expression 'a + b' to a function called 'add1', you'd have to say 'add1 (a + b)'. Without the parenthese it would be like saying '(add1 a) + b'</p>
+                <p>The parentheses here may seem to create a tuple of one element. In a way it does, but tuples of one element are always treated as if you had just given that one element instead. So, in memory there wont be any pointer or structure for a one element tuple. They are only used to change the order of evaluation, as above.</p>
+        </body>
+</html>

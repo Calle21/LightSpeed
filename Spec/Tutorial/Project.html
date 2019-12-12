@@ -18,6 +18,7 @@
                 <p>Now, you're using three libraries, and the (hypothetical) name clashes +, - and * are resolved by telling the compiler that these identifiers are to be used from the Nova library. If you wanted to use an identifier from any specific library you could also just write "OpenAL::+" to say that you wanted to use the + operator from the OpenAL library</p>
                 <p>Sub-folders play no specific role in Nova other than to simplify the structure and make life easier for the programmer. All global identifiers are visible to the entire program.</p>
                 <p>Nova source files are named quite specifically. That is, if you have a function called "helloworld", which takes exactly one parameter, let's say a name, then the source file would have to be named, exactly, "helloworld_.nova". The underscore symbolizes a parameter. In order to overload functions, you have to put them in the same source file. More on overloading later.</p>
+                <p>A project's home folder follow certain rules. One file, named "Types.nova", contain all types for the project. These are ordered alphabetically. Then there are two folders named "Operators" and "Functions" that contain the operators and functions for the project.</p>
         </body>
 </html>
 

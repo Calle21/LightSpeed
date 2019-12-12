@@ -5,8 +5,37 @@
                 <link rel="stylesheet" href="../Style.css">
         </head>
         <body>
+                <p class="filename">len_.nova</p>
                 <pre>
-Int length String s = 2of2 s
+Int len String s = 2of2 s
+
+Int len List E l = l >> 0
+                   1 + len l.cdr
                 </pre>
+                <p class="filename">rev_.nova</p>
+                <pre>
+rev List E l
+  @rec acc = () l = l
+    prev >> rec (l.car : acc) l.cdr
+    acc
+
+rev Array E a
+  @rec a' = a s = 0 e = len a - 1
+    s >= e >> a'
+    t     = a ! s
+    a ! s = a ! e
+    a ! e = t
+    rec (s + 1) (s - 1)
+                </pre>
+                <p class="filename">subseq_.nova</p>
+                <pre>
+subseq Sequence E seq Int (0,) i0 Int (0,) i1
+  i0 > i1 >> error "Start index cannot be bigger than end index"
+  l = len seq
+  i0 > l >> error "Start index out of bound"
+  i1 > l >> error "End index out of bound"  
+  (1of3 seq, 2of3 seq + i0, 2of3 seq + i1)
+                </pre>
+                <p class="comment">This function is specialized towards the Sequence type, which is created to make the extraction of subsequences efficient.</p>
         </body>
 </html>

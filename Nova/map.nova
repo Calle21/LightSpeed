@@ -1,0 +1,10 @@
+map A <- B fn {B} ls
+  @rec ls = ls
+    null ls >> ()
+    fn ls.car : rec ls.cdr
+
+map A <- B fn [B] arr
+  @rec arr' = arr i = 0
+    i > len arr >> arr'
+    arr' ! i = fn (arr ! i)
+    rec arr' (i + 1)

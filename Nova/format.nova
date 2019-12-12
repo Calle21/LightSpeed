@@ -1,0 +1,19 @@
+format String s [Run] arr
+  format stdout s arr
+
+format Handle h String s [Run] arr
+  @rec i = 0
+    c = s ! i
+    c == 'nul >> void
+    c == '|   >> i = i + 1
+                 c = s ! i
+                 c == 'nul >> error "String ended after pipe"
+                 c == '|   >> putc h '|
+                              rec (i + 1)
+                 (n,i) = readint s i
+                 c = s ! i
+                 c == '| >> print (arr ! n)
+                            rec (i + 1)
+                 error "Expected a pipe"
+    putc h c
+    rec (i + 1)

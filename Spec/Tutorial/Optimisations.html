@@ -17,5 +17,27 @@
                 <h3>Reuse of no longer needed variable space</h3>
                 <p>This optimization is discussed in the 'More on variables' chapter.</p>
                 <h3>Inlining of small computations</h3>
+                <p>Function less than 3-4 machine-code instructions should be inlined when appropriate.</p>
+                <p>Not the same as inlined functions discussed earlier. Maybe I should change the name of that.</p>
+                <h3>Recursive accumulation</h3>
+                <p>Consider a function to find the length of a list</p>
+                <pre>
+                Int length List E lst
+                  null lst >> 0
+                  1 + length lst.cdr
+                </pre>
+                <p>If the list is void, tested by the function 'null', then the length is obviously 0. Otherwise, it is obviously 1 + the length of the remainder of the list. It is considered that by writing a function the way I did above that it is not possible to avoid a recursive call, and thus start eating the stack. However, it is infact possible (I think) for the compiler to create an accumulator variable and avoid a recursive call, if the compiler knows before hand what the '+' function is doing. A general solution seems to be impossible, but for a handful of functions, it is probably possible. The most useful function would be the standard arithmetic functions, and also the 'cons' function (:).</p>
+                <h3>Tuple embedment (not yet officially mandatory)</h3>
+                <p>Suppose you have an array of tuples. Eahc tuple containing say three elements. The standard way to build this array would be to have an array of pointers, each pointing to a tuple. This would make access slower, yes, but if you were to copy a tuple from the array into another place, you'd only have to copy the pointer, and not the entire tuple. So copying would be faster. However, if you knew that you're not to need to copy the tuples, and you need fast access, then you might want to "embed" the tuples into the array, so that access gets faster. This could be implemented as a compiler directive. The difficulties to implement this feature weighted against the benefits has not yet been evaluated, so it is left as a possible optimisation, which could or could not become mandatory.</p>
+                <h3>Junk-array copy (not yet officially mandatory)</h3>
+                <p>Consider a map function that maps a function over an array. The result should be a new array with the results from the elements of the array given when applied to the function given (puh). Now, here is what it would look like</p>
+                <pre>
+                map B <- A fn [A] arr
+                  @rec arr' = arr i = 0
+                    i > len arr >> arr'
+                    arr' ! i = fn (arr ! i)
+                    rec arr' (i + 1)
+                </pre>
+                <p>The first thing to note is that a new array need not necessarily be allocated. The old array may infact be reused if it is not to be usedagain after the call to map. If a new array is needed however, a copy of the old array would be made during the first call to @rec. Afterwards, the new array would remain the same. However, it is not necessary to copy the whole array, since we will write over all the elements. A junk array would do fine. Is the compiler smart enough to see this, or would a statement by the programmer, to help the compiler, be more suitable? I don't know.</p>
         </body>
 </html>
