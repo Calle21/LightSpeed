@@ -1,7 +1,0 @@
-strwrite (String a, String b, Int i) = loop (i0 = 0, i1 = i, b = b)
-  c = a.i0
-  if
-   c    == 'nul -> (b, i1)
-   b.i1 == 'nul -> error "I told you to be cautious"
-    else
-    loop (i0 + 1, i1 + 1, set b.i1 to c)

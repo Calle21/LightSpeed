@@ -1,8 +1,0 @@
-sum ({E} seq)  = fold seq with (+) from left starting 0
-
-sum ([E] tab) = fold tab with (+) from left starting 0
-
-sum (<List E> ls)
-  null ls
-    0
-    ls.elt + sum ls.nxt

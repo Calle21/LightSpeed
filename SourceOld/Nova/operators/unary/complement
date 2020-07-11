@@ -1,1 +1,0 @@
-!! (Bool <- A f) = arg -> not (f (arg))

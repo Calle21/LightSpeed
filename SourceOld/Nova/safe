@@ -1,4 +1,0 @@
-safe (<Fail | A> s) = typecase s
-                        A -> s
-                        otherwise
-                        error "Apparently not safe"

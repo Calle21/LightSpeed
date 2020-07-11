@@ -1,0 +1,14 @@
+[E] reverse ([E] arr)
+  @loop (Int lo = 0, Int hi = arr.len - 1, [E] arr = arr)
+    lo >= hi >> arr
+    loop (lo + 1
+          hi - 1
+          modify arr
+            lo = arr ! hi
+            hi = arr ! lo)
+
+{E} reverse ({E} ls)
+  @loop ({E} prev = void, {E} cur = ls)
+    tcase cur
+      Void   -> prev
+      Cons E -> loop (modify cur (cdr = prev), cur.cdr)

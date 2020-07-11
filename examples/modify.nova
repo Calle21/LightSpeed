@@ -1,0 +1,3 @@
+[Int] modifyFirst ([Int] arr)
+  modify arr
+    0 = 99

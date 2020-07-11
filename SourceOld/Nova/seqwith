@@ -1,1 +1,0 @@
-seq (Int n) with (E elt) = (array (n) with elt, 0, n)

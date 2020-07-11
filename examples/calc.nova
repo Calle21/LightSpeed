@@ -1,0 +1,64 @@
+Void calc
+  print " >> "
+  String s = getLine
+  List Tok tokens = lex s
+  null tokens >> calc
+  (Int result,List Tok rest) = readExpr tokens
+  null rest >> print result
+  error "Poor syntax"
+
+Union Tok = Char,Int
+
+(Int,List Tok) readExpr (List Tok tokens)
+  tcase tokens
+    Void     -> error "Expected a token"
+    Cons Tok -> Tok t tokens.car
+                tcase t
+                  Int  -> t
+                  Char -> t == '( >> readParen tokens.cdr
+                          error "Unexpected character"
+
+(Int,List Tok) readParen (List Tok tokens)
+  tcase tokens
+    Void     -> error "Expected something"
+    Cons Tok -> Tok t = tokens.car
+                tcase t
+                  Int  -> error "Didn't expect a number"
+                  Char -> case t
+                            '+ -> readParenWith (+ the Int <- (Int,Int), tokens.cdr)
+                            '- -> readParenWith (- the Int <- (Int,Int), tokens.cdr)
+                            '* -> readParenWith (* the Int <- (Int,Int), tokens.cdr)
+                            '/ -> readParenWith (/ the Int <- (Int,Int), tokens.cdr)
+                          error "Unexpected character"
+
+(Int,List Tok) readParenWith (Int <- (Int,Int) fn, List Tok tokens)
+  tcase tokens
+    Void     -> error "Expected tokens"
+    Cons Tok -> Tok t0 = tokens.car
+                tcase t0
+                  Char -> error "Didn't expect a char"
+                  Int  -> List Tok tokens = tokens.cdr
+                          tcase tokens
+                            Void     -> error "Expected more tokens"
+                            Cons Tok -> Tok t1 = tokens.car
+                                        tcase t1
+                                          Char -> error "Didn't expect a char"
+                                          Int  -> @loop (Int result = fn (t0,t1)
+                                                         List Tok tokens = tokens.cdr)
+                                                    tcase tokens
+                                                      Void     -> error "Expected tokens"
+                                                      Cons Tok -> Tok t = tokens.car
+                                                                  tcase t
+                                                                    Char -> t == ') >> (result,tokens.cdr)
+                                                                            error "Unexpected character"
+                                                                    Int  -> loop (fn (result, t), tokens.cdr)
+
+List Tok lex (String s)
+  tcase s
+    Void      -> void
+    Cons Char -> Char c = s.car
+                 c `in` ['+,'-,'*,'/,'(,')] >> c as Tok : lex s.cdr
+                 digit c                    >> (String num,String s) = span (digit, s)
+                                               Int num = read num
+                                               num as Tok : lex s
+                 error "Unexpected character"

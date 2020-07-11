@@ -1,1 +1,0 @@
-strseq (String s) the {Char} = sequence (s, 0, strlen s)

@@ -1,3 +1,0 @@
-id (A arg) = arg
-
-id = id _

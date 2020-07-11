@@ -1,1 +1,0 @@
-drop until (Bool <- E p) ({E} seq) = drop while !! p seq

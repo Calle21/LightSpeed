@@ -1,4 +1,0 @@
-makecounter ()
-  Int c = 0
-  do -> set c to #c c + 1
-        #c

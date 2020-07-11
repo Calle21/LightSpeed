@@ -1,6 +1,0 @@
-index of (R arg) in ({E} seq) with (R <- E fn) = rec (i = 0)
-  if
-   i        == seq.end -> -1
-   fn seq@i == arg     -> i
-    else
-    rec (i + 1)

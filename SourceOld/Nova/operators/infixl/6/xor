@@ -1,2 +1,0 @@
-(A a) `xor` (B b) where zero #(sizeof A & sizeof B) = intermediate A
-                                                      (return (xor #a #b))

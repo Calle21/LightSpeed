@@ -1,7 +1,0 @@
-fibonacci (n)
-  ? n < 2 -> n
-    else
-    rec (a = 0, b = 1, n = n - 2)
-      ? n == 0 -> #c (a + b)
-        else
-        rec (b, c, n - 1)

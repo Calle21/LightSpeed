@@ -1,3 +1,0 @@
-NUM sum [NUM] tab = @rec s = 0 i = 0
-                      i == length tab ? s
-                      rec (s + tab[i]) (i + 1)

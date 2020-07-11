@@ -1,1 +1,0 @@
-copyarray ([E] from, [E] to, Int start, Int size)

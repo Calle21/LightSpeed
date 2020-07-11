@@ -1,1 +1,0 @@
-(E elt) ? = (== elt) the Bool <- E

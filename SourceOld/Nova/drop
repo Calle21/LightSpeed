@@ -1,5 +1,0 @@
-drop (Int n) from ({E} seq)
-  if #s (seq.start + n) <= seq.end
-    set seq.start to #s
-    else
-    error "Can't drop that many elements from this sequence : %0" {show seq}

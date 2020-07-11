@@ -1,0 +1,3 @@
+synonym Void = ()
+
+Void void = void

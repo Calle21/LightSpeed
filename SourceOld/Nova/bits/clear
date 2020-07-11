@@ -1,4 +1,0 @@
-(A a) `clear` (Int n) where zero (sizeof A)
-                            n < bitsize A
-  intermediate A
-  (return (and #a (not (exp 2 #b))))

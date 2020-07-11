@@ -1,1 +1,0 @@
-update (K key, E elt) of (Map KE map) with (E <- E f)

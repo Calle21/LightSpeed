@@ -1,0 +1,7 @@
+synonym String = List Char
+
+String strstr (String a, String b)
+  tcase b
+    Void      -> void
+    Cons Char -> a `prefix` b >> b
+                 strstr (a,b.cdr)

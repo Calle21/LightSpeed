@@ -1,1 +1,0 @@
-seq (Int n) = sequence (array (n), 0, n)

@@ -1,8 +1,0 @@
-index (String s, Int n)
-  typecase s
-    [Char]   -> index (s, n)
-    [String] -> rec (Int i = 0, n = n)
-                  ? i == s.size       -> error "Index out of bounds"
-                  ? #l (length of #a s@i) > n -> index (a, n)
-                    else
-                    rec (i + 1, n - l)

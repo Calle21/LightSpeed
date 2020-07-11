@@ -1,8 +1,0 @@
-conc ([{E}] seqs) the {E} = tableseq \ 1of2 \ fold seqs with ((tab, i), seq -> seqwrite (seq, tab, i)) from left starting (array (sum seqs with (length of _)), 0)
-
-conc ([{E}] seqs)
-  len = sum seqs with (seq -> length of seq)
-  arr = array len
-  
-
-conc ([[E]] tabs) the [E] = seqtable \ conc \ tableseq `on` tabs

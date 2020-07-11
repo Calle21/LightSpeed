@@ -1,7 +1,0 @@
-span (Bool <- E f) on ({E} seq)
-  end = seq.end
-  rec (newend = seq.start)
-    if not seq[newend].p | end == newend then (set seq.end to newend
-                                               set seq.start to newend)
-      else
-      rec (newend + 1)

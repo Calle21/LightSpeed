@@ -1,8 +1,0 @@
-lookup (K key) in (S seq)
-  if res = until !! (fail ?) seq
-    2of2 res
-    else
-    fail
-
-lookup (K key) in (Map KE map)
-  ...

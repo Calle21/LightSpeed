@@ -1,2 +1,0 @@
-(Int a) % (Int b) = intermediate Int
-                    (mod #a #b)

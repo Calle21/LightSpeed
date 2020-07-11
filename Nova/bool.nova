@@ -1,0 +1,8 @@
+type Bool = Int
+
+Bool (Bool a) & (Bool b) = ...
+Bool (Bool a) | (Bool b) = ...
+
+Bool not (Bool b)
+  b >> false
+  true

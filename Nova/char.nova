@@ -1,0 +1,31 @@
+type Char = Int
+
+Bool alpha (Char c)
+  lower c | upper c
+
+Int diff = int 'a - int 'A
+
+Bool digit (Char c)
+  range c
+    ('0,'9) -> true
+  false
+
+Bool lower (Char c)
+  range c
+    ('a,'z) -> true
+  false
+
+Char toLower (Char c)
+  range c
+    ('A,'Z) -> char (int c + diff)
+  c
+
+Char toUpper (Char c)
+  range c
+    ('a,'z) -> char (int c - diff)
+  c
+
+Bool upper (Char c)
+  range c
+    ('A,'Z) -> true
+  false

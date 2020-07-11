@@ -1,2 +1,0 @@
-build list ({BuildList E} bl, E elt)
-  bl.last.nxt := list (elt)

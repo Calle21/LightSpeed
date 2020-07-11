@@ -1,4 +1,0 @@
-strlen (String s) = rec (len = 0)
-  if nul s.len
-    len
-    else rec (len + 1)

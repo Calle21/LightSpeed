@@ -1,6 +1,0 @@
-(Int,Int) readInt Int base String s Int i
-  @loop acc = 0 i = i
-     let d = s ! i
-     ? n = digit base d -> loop (acc * base + n) (i + 1)
-       else
-       (acc,i)

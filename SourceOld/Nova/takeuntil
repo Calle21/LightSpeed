@@ -1,1 +1,0 @@
-take until (Bool <- E p) ({E} seq) = take while !! p seq

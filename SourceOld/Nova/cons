@@ -1,3 +1,0 @@
-(E elt) : (List E ls) = Cons (elt, ls)
-
-(E elt0) : (E elt1) = Cons (elt0, list elt1)

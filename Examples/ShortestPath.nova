@@ -1,5 +1,0 @@
-type Network = 
-
-find-shortest-path
-  @rec
-

@@ -1,1 +1,0 @@
-product ([Int] is) = fold is with * from left starting 1

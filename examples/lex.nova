@@ -1,0 +1,14 @@
+List Tok lex (String s)
+  String s = dropWhile (ws _ the (Bool <- Char), s)
+  tcase s
+    Void   -> void
+    Cons E -> tChar s.car >> (String tok, String s) = span (tChar _ the (Bool <- Char), s)
+                             all (digit _, tok) >> Int n = read tok
+                                                   n as Tok : lex s
+                             tok as Tok : lex s
+              error "Unexpected character"
+
+Bool tChar (Char c)
+  digit c | alpha c
+
+union Tok = Int, String

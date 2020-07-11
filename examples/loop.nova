@@ -1,0 +1,5 @@
+Int a ((Int | Char) b)
+  tcase b
+    Int  ->
+    Char -> @loop (Char b = b)
+      

@@ -1,2 +1,0 @@
-(A a) `and` (B b) where zero #(sizeof A & sizeof B) = intermediate A
-                                                      (return (and #a #b))

@@ -1,2 +1,0 @@
-(Int a) /% (Int b) = intermediate (Int,Int)
-                     (divmod #a #b)

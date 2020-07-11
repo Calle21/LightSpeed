@@ -1,3 +1,0 @@
-counter = static Int c = 0
-          set c to #c c + 1
-          #c

@@ -1,1 +1,0 @@
-tableseq ([E] tab) = sequence (tab.array, 0, tab.size)

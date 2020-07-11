@@ -1,6 +1,0 @@
-infix
-
-Groups -> Operators
-
-groups:
- Application -> Arithmetic -> Bits -> Composition

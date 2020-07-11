@@ -1,4 +1,0 @@
-module Compile.Compile where
-
-Compile :: ParseTree -> Assembly
-compile pt = ?????????

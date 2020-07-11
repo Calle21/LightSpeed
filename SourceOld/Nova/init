@@ -1,4 +1,0 @@
-init ({E} seq) = if #e seq.end == seq.start
-                   error "Init of empty list"
-                   else
-                   seq.end := #e - 1

@@ -1,8 +1,0 @@
-memoize (R <- A fn)
-  tree = void
-  (arg -> if res = lookup arg in tree
-            res
-            else
-            res = fn arg
-            set tree to insert (arg,res) into tree
-            res)

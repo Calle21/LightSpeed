@@ -1,7 +1,0 @@
-chartoint (Char c)
-  if i = undigit c then i
-    else
-    if
-     'a' <= c <= 'z' -> ~ (c - 'a') + 10
-     'A' <= c <= 'Z' -> ~ (c - 'A') + 10
-      else fail

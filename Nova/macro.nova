@@ -1,0 +1,33 @@
+macro times (val a) (body)
+  @loop (Int a = (val a))
+    a <= 0 >> void
+    (body)
+    loop (a - 1)
+
+macro for (openParen) (var a) (val a) (val b) (closeParen) (body)
+  @loop (Int (var a) = (val a))
+    (var a) > (val b) >> void
+    (body)
+    loop ((var a) + 1)
+
+action Void print1to10
+  for (a 1 10)
+    print a
+    print 'space
+
+action Void print10times (Char c)
+  times 10
+    print c
+ 
+action Void print10times (Char c)
+  @loop (Int start = 0)
+    start == 10 >> void
+    print c
+    loop (start + 1)
+
+action Void print10times (Char c)
+  loop (Int start)
+    start == 10 >> void
+    print c
+    loop (start + 1)
+  loop 0

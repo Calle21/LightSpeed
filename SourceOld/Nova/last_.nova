@@ -1,4 +1,0 @@
-last ({E} seq) = if empty seq
-                   error "Empty sequence"
-                   else
-                   seq@(seq.end - 1)

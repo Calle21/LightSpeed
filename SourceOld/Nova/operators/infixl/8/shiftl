@@ -1,2 +1,0 @@
-(A a) `shiftl` (Int b) where zero (sizeof A) = intermediate A
-                                               (return (sl #a #b))

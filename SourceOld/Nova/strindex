@@ -1,7 +1,0 @@
-strindex (String s, Int n) = rec (i = 0)
-  c = s@i
-  if
-   nul c  -> error "Index out of bounds"
-   i == n -> c
-    else
-    rec (i + 1)

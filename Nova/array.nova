@@ -1,0 +1,17 @@
+E ([E] arr) ! (Int i) = ...
+
+(Int | Void) binsearch (E elem, [E] arr)
+  @loop (Int lo = 0, Int hi = length arr - 1)
+    lo > hi >> void as (Int | Void)
+    Int mid = (lo + hi) / 2
+    E midelem = arr ! mid
+    elem < midelem >> loop (lo, mid - 1)
+    elem > midelem >> loop (mid + 1, hi)
+    mid as (Int | Void)
+
+Bool (E elt) `in` ([E] arr)
+  Int end = length arr
+  @loop (Int i = 0)
+    i   == end     >> false
+    elt == arr ! i >> true
+    loop (i + 1)

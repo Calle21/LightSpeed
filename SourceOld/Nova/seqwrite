@@ -1,8 +1,0 @@
-seqwrite ({E} seq, [E] tab, Int start)
-  if length of seq > (tab.size - start)
-    error "Sequence too large"
-    else write (i = 0)
-      if #s (i + seq.start) == seq.end
-        (tab, start + i)
-        else
-        set tab@(start + i) to seq@#s >> write (i + 1)

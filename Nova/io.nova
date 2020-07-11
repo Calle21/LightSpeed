@@ -1,0 +1,19 @@
+action Char getChar = ...
+
+action String getLine = ...
+
+action Void print (Char c) = ...
+
+action Void print (Int i)
+  print (show i)
+
+action Void print (String s)
+  @loop (String s = s)
+    tcase s
+      Void   -> void
+      Cons E -> print s.car
+                loop s.cdr
+
+action Void printLn (A arg)
+  print arg
+  print 'newline

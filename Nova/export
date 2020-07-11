@@ -1,0 +1,70 @@
+ -- Arithmetic
++
+*
+-
+/
+^
+abs
+fact
+ -- Array
+binsearch
+`in`
+ -- Bits
+`shiftL`
+`shiftR`
+`and`
+`or`
+`xor`
+ -- Bool
+&
+|
+not
+ -- Char
+alpha
+digit
+lower
+toLower
+toUpper
+upper
+ -- Functions
+||
+&&
+`compose`
+flip
+identity
+ -- IO
+getChar
+getLine
+print
+printLn
+ -- List
+Cons
+List
+:
+++
+`assoc`
+concat
+drop
+dropWhile
+filter
+find
+foldl
+foldr
+head
+`in`
+length
+map
+null
+partition
+`prefix`
+reverse
+span
+tail
+take
+takeWhile
+ -- String
+String
+strstr
+ -- Void
+Void
+void

@@ -1,3 +1,0 @@
-List E = (Cons E, Void)
-Maybe A = (A, Fail) \\ ?
-Number = (Float, Int) \\ ?

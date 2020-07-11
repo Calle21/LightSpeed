@@ -1,4 +1,0 @@
-length of (String s)
-  typecase s
-    [Char]          -> s.size
-    (Int, [String]) -> 1of2 s

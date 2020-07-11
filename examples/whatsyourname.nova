@@ -1,0 +1,3 @@
+Void whatsyourname = printLn "Hello. What's your name?"
+                     String s = getLine
+                     printLn ("Your name is " ++ s)

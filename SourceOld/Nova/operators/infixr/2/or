@@ -1,4 +1,0 @@
-(Bool a) & (Bool b)
-  if a !
-    a
-    else b

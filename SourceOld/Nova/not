@@ -1,1 +1,0 @@
-not (Bool arg) = arg `xor` 1

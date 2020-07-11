@@ -1,4 +1,0 @@
-(A a) `set` (Int n) where zero (sizeof A)
-                          n < bitsize A
-  intermediate A
-  (return (or #a (exp 2 #b)))

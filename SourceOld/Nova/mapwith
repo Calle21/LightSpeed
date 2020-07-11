@@ -1,1 +1,0 @@
-map (SE seq) with (R <- E fn) = map (fn) on (seq) the SR
