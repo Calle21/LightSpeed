@@ -1,0 +1,17 @@
+In Nova there are free environments and unfree environments. This has to do with parsing. In a free environment, when several expressions follow each other, on the same level of indentation, they form a singular sequence expression where the expressions are evaluated one by one in the order they appeared. In an unfree environment, this is not possible. There a sequence of expressions can only be achieved by using the 'seq' keyword. Like this
+
+seq a
+    b
+    c
+
+This is so in order to make possible the tuple, array and list parsing that goes on in Nova.
+
+(a, b, c)
+
+is equivalent to
+
+(a
+ b
+ c)
+
+And the same is true for arrays and lists. When parsing expressions withing a tuple, array or list we say that the environment is unfree, and that sequences must use the 'seq' keyword.

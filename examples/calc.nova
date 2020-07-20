@@ -1,64 +1,99 @@
-Void calc
+use error from Calc
+
+Void main
   print " >> "
   String s = getLine
-  List Tok tokens = lex s
-  null tokens >> calc
-  (Int result,List Tok rest) = readExpr tokens
-  null rest >> print result
-  error "Poor syntax"
+  if s == "quit" -> void
+     else -> {Tok} toks = lex s
+             if null toks -> main
+                else -> printLn << eval << parse toks
+                        main
 
-Union Tok = Char,Int
+union Tok = Int,Char
 
-(Int,List Tok) readExpr (List Tok tokens)
-  tcase tokens
-    Void     -> error "Expected a token"
-    Cons Tok -> Tok t tokens.car
-                tcase t
-                  Int  -> t
-                  Char -> t == '( >> readParen tokens.cdr
-                          error "Unexpected character"
-
-(Int,List Tok) readParen (List Tok tokens)
-  tcase tokens
-    Void     -> error "Expected something"
-    Cons Tok -> Tok t = tokens.car
-                tcase t
-                  Int  -> error "Didn't expect a number"
-                  Char -> case t
-                            '+ -> readParenWith (+ the Int <- (Int,Int), tokens.cdr)
-                            '- -> readParenWith (- the Int <- (Int,Int), tokens.cdr)
-                            '* -> readParenWith (* the Int <- (Int,Int), tokens.cdr)
-                            '/ -> readParenWith (/ the Int <- (Int,Int), tokens.cdr)
-                          error "Unexpected character"
-
-(Int,List Tok) readParenWith (Int <- (Int,Int) fn, List Tok tokens)
-  tcase tokens
-    Void     -> error "Expected tokens"
-    Cons Tok -> Tok t0 = tokens.car
-                tcase t0
-                  Char -> error "Didn't expect a char"
-                  Int  -> List Tok tokens = tokens.cdr
-                          tcase tokens
-                            Void     -> error "Expected more tokens"
-                            Cons Tok -> Tok t1 = tokens.car
-                                        tcase t1
-                                          Char -> error "Didn't expect a char"
-                                          Int  -> @loop (Int result = fn (t0,t1)
-                                                         List Tok tokens = tokens.cdr)
-                                                    tcase tokens
-                                                      Void     -> error "Expected tokens"
-                                                      Cons Tok -> Tok t = tokens.car
-                                                                  tcase t
-                                                                    Char -> t == ') >> (result,tokens.cdr)
-                                                                            error "Unexpected character"
-                                                                    Int  -> loop (fn (result, t), tokens.cdr)
-
-List Tok lex (String s)
+{Tok} lex (String s)
   tcase s
-    Void      -> void
+    Void -> void
     Cons Char -> Char c = s.car
-                 c `in` ['+,'-,'*,'/,'(,')] >> c as Tok : lex s.cdr
-                 digit c                    >> (String num,String s) = span (digit, s)
-                                               Int num = read num
-                                               num as Tok : lex s
-                 error "Unexpected character"
+                 if c == 'space -> lex s.cdr
+                    c `in` ['+,'-,'*,'/,'(,')] -> c : lex s.cdr
+                    digit c -> (String num,String s) = span (digit, s)
+                               Int num = readint num
+                               num the Int : lex s
+                    else -> error "Unexpected character"
+
+union Lang = Int, Call
+
+struct Call
+    Lang arg1
+    Char op
+    Lang arg2
+
+Int eval (Lang l)
+  tcase l
+    Int -> l
+    Call -> case l.op
+              '+ -> eval l.arg1 + eval l.arg2
+              '- -> eval l.arg1 - eval l.arg2
+              '* -> eval l.arg1 * eval l.arg2
+              '/ -> eval l.arg1 / eval l.arg2
+
+Lang parse ({Tok} ls)
+  (Lang l,{Tok} ls) = parseExpr ls
+  tcase ls
+    Void -> l
+    Cons Tok -> error "Didn't expect closing paren"
+
+(Lang,{Tok}) parseExpr ({Tok} ls)
+  (Lang a, {Tok} ls) = parseSub ls
+  tcase ls
+    Void -> (a,ls)
+    Cons Tok -> Tok tok = ls.car
+                tcase tok
+                  Char -> if tok `in` ['+,'-,'*,'/] -> parse1op (a,tok,ls.cdr)
+                             tok == ') -> (a,ls)
+                             true -> error "Expected operator or closing paren"
+                  _ -> error "Expected operator or closing paren"
+
+(Lang,{Tok}) parse1op (Lang a, Char op, {Tok} ls)
+  (Lang b, {Tok} ls) = parseSub ls
+  tcase ls
+    Cons Tok -> Tok tok = ls.car
+                tcase tok
+                  Char -> if tok == ') -> (call (a,op,b),ls)
+                             tok `in` ['+,'-,'*,'/] -> case getWinner (op,tok)
+                                                         'l -> parse1op (call (a,op,b), tok, ls.cdr)
+                                                         'r -> (Lang b, {Tok} ls) = parse1op (b,tok,ls.cdr)
+                                                               (call (a,op,b),ls)
+                             else -> error "Expected closing paren or operator"
+                  _ -> error "Expected closing paren or operator"
+    _ -> (call (a,op,b),ls)
+
+Char getWinner (Char a, Char b)
+  if getStrength a < getStrength b -> 'r
+     else -> 'l
+
+Int getStrength (Char c)
+  if c `in` ['+,'-] -> 0
+     c `in` ['*,'/] -> 1
+
+(Lang,{Tok}) parseSub ({Tok} ls)
+  tcase ls
+    Cons Tok -> Tok tok = ls.car
+                tcase tok
+                  Int -> (tok,ls.cdr)
+                  Char -> if tok == '( -> (Lang a, {Tok} ls) = parseExpr ls.cdr
+                                          tcase ls
+                                            Cons Tok -> Tok tok = ls.car
+                                                        tcase tok
+                                                          Char -> if tok == ') -> (a,ls.cdr)
+                                                                     else -> error "Expected closing paren"
+                                                          _ -> error "Expected closing paren"
+                                            _ -> error "Expected closing paren"
+                             else -> error "Unexpected character"
+    _ -> error "Expected expression"
+
+Void error (String s)
+  print "Error: "
+  printLn s
+  main

@@ -1,15 +1,14 @@
-Bool <- A (Bool <- A fn0) || (Bool <- A fn1)
-  lambda Bool <- A (A arg)
-    fn0 arg | fn1 arg
+export |||, &&&, <<, id
 
-Bool <- A (Bool <- A fn0) && (Bool <- A fn1)
+Bool <- A (Bool <- A fn0) ||| (Bool <- A fn1)
   lambda Bool <- A (A arg)
-    fn0 arg & fn1 arg
+    fn0 arg || fn1 arg
 
-C <- A (C <- B fn1) `compose` (B <- A fn0)
+Bool <- A (Bool <- A fn0) &&& (Bool <- A fn1)
+  lambda Bool <- A (A arg)
+    fn0 arg && fn1 arg
+
+C <- A (C <- B fn1) << (B <- A fn0)
   lambda C (A arg) = fn1 (fn0 arg)
 
-C <- (B,A) flip (C <- (A,B) fn)
-  lambda C (B b, A a) = fn (a,b)
-
-A identity (A a) = a
+A id (A a) = a

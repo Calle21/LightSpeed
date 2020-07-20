@@ -1,8 +1,10 @@
-type Bool = Int
+enum Bool = false, true
 
-Bool (Bool a) & (Bool b) = ...
-Bool (Bool a) | (Bool b) = ...
+Bool (Bool a) && (Bool b) = ...
+Bool (Bool a) || (Bool b) = ...
 
 Bool not (Bool b)
-  b >> false
-  true
+  if b -> false
+     else -> true
+
+Bool else = true

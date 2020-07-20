@@ -1,0 +1,81 @@
+synonym SudokuTemplate = Array 2 (Int | Void)
+
+synonym Sudoku = Array 2 Mutable (Int | Void)
+
+synonym Board = Array 2 Mutable (Set Int)
+
+Sudoku solveSudoku (SudokuTemplate sudt)
+  Sudoku sud = makeSudoku sudt
+  Board board = makeBoard
+  @loop
+    eliminate (sud,board)
+    Bool changed = fill (sud,board,false)
+    if not changed || done sud -> sud
+       else -> loop
+
+Bool done (Sudoku sud)
+  all isInt sud
+
+Bool isInt (Mutable (Int | Void) m)
+  tcase m
+    Int -> true
+    _   -> false
+
+Bool fill (Sudoku sud, Board board, Mutable Bool changed)
+  for (x 0 8)
+   for (y 0 8)
+    Set Int tree = board ! (x,y)
+    if size tree == 1 -> Mutable (Int | Void) m = sud ! (x,y)
+                         (Int | Void) i = m
+                         tcase i
+                           Void -> m := tree.leaf
+                                   changed := true
+                           Int -> void
+       else -> void
+  changed
+
+Void eliminate (Sudoku sud,Board board)
+  for (x 0 8)
+   for (y 0 8)
+    (Int | Void) i = sud ! (x,y)
+    tcase i
+      Void -> void
+      Int -> for (x 0 8)
+               Mutable (Set Int) m = board ! (x,y)
+               m := delete (i, m)
+             for (y 0 8)
+               Mutable (Set Int) m = board ! (x,y)
+               m := delete (i, m)
+             Int startx = x - (x `mod` 3)
+             Int starty = y - (y `mod` 3)
+             for (x startx (startx + 2))
+              for (y starty (starty + 2))
+               Mutable (Set Int) m = board ! (x,y)
+               m := delete (i, m)
+    
+
+Board makeBoard
+  array ((9,9),makeInitialSet)
+
+Set Int makeInitialSet
+  @loop (Set Int set = void)
+    if size set == 10 -> set
+       else -> Int next = @getInt (Int a = pure random 10)
+                            if a `member` set -> getInt pure random 10
+                               else -> a
+               loop (insert (next, set))
+
+Sudoku makeSudoku (SudokuTemplate sudt)
+  Sudoku sud = array ((9,9),void)
+  each (a <- sudt
+        b <- sud)
+    b := a
+  sud
+
+{Sudoku} solveSudokus ({SudokuTemplate} sudts)
+  tcase sudts
+    Void -> void
+    Cons SudokuTemplate -> parallel
+                             Sudoku a <- solveSudoku sudts.car
+                             {Sudoku} b <- solveSudoku sudts.cdr
+                           a : b

@@ -1,0 +1,69 @@
+union FingerTree E = FingerNode E, E, Void
+
+struct FingerNode E
+    FingerTree E left
+    Int          size
+    FingerTree E right
+
+E (FingerTree E finger) ! (Int i)
+  tcase finger
+    FingerNode E -> FingerTree E left = finger.left
+                    Int sizeLeft = length left
+                    if i >= sizeLeft -> finger.right ! (i - sizeLeft)
+                       true -> left ! i
+    E            -> if i == 0 -> finger
+                       true -> error "Out of bounds"
+    Void         -> error "Out of bounds"
+
+FingerTree E insert (E elt, FingerTree E finger, Int pos)
+  tcase finger
+    FingerNode E -> FingerTree E left = finger.left
+                    Int sizeLeft = length left
+                    if i >= sizeLeft -> modify finger
+                                          size = finger.size + 1
+                                          right = insert (elt, finger.right, pos - sizeLeft)
+                       true -> modify finger
+                                 size = finger.size + 1
+                                 left = insert (elt, left, pos)
+    E            -> if pos == 0 -> fingerNode (elt,2,finger)
+                       pos == 1 -> fingerNode (finger,2,elt)
+                       true -> error "Out of bounds"
+    Void         -> if pos == 0 -> elt
+                       true -> error "Out of bounds"
+
+FingerTree E delete (FingerTree E finger, Int pos)
+  tcase finger
+    FingerNode E -> left = finger.left
+                    sizeLeft = length left
+                    if i >= sizeLeft -> modify finger
+                                          size = finger.size - 1
+                                          right = delete (finger.right, pos - sizeLeft)
+                       true -> modify finger
+                                 size = finger.size - 1
+                                 left = delete (left, pos)
+    E            -> if pos == 0 -> void
+                       true -> error "Out of bounds"
+    Void         -> error "Out of bounds"
+
+FingerTree E (FingerTree E finger1) ++ (FingerTree E finger2)
+  fingerNode (finger1, length finger1 + length finger2, finger2)
+
+Int length (FingerTree E finger)
+  tcase finger
+    FingerNode E -> finger.size
+    E            -> 1
+    Void         -> 0
+
+FingerTree E clean (FingerTree E finger)
+  tcase finger
+    FingerNode E -> size = finger.size
+                    if size == 0 -> void
+                       size == 1 -> FingerTree E left = finger.left
+                                    if length left == 0 -> clean finger.right
+                                       true -> clean left
+                       true -> modify finger
+                                 left = clean finger.left
+                                 right = clean finger.right
+  finger
+
+FingerTree update (FingerTree finger

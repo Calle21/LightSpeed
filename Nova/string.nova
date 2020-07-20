@@ -1,7 +1,33 @@
+export String, format, readint, strstr
+
 synonym String = List Char
+
+Void format (String s, [String] args)
+  tcase s
+    Void -> void
+    Cons Char -> Char c = s.car
+                 if c == '% -> String s = s.cdr
+                               Char c = s.car
+                               if c == '% -> print '%
+                                             format (s.cdr,args)
+                                  digit c -> (String num,String s) = span (digit,s)
+                                             Int num = readint num
+                                             print (args ! num)
+                                             format (s,args)
+                                  true -> error "Expected % or digit"
+                    true -> print c
+                            format (s.cdr,args)
+
+Int readint (String s)
+  if null s -> error "Empty string"
+     true -> @loop (Int acc = 0, String s = s)
+               tcase s
+                 Void -> acc
+                 Cons Char -> loop (acc * 10 + charToDigit s.car
+                                    s.cdr)
 
 String strstr (String a, String b)
   tcase b
     Void      -> void
-    Cons Char -> a `prefix` b >> b
-                 strstr (a,b.cdr)
+    Cons Char -> if a `prefix` b -> b
+                    true -> strstr (a,b.cdr)

@@ -1,0 +1,9 @@
+enum Sig = exit, continue
+
+Void performPerSec (Sig action, Float f)
+  switch action
+    exit -> void
+    continue -> performPerSec (action,f)
+
+Void wait (Float secs)
+  ...

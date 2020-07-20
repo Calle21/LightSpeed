@@ -1,0 +1,176 @@
+In Nova there are 6 (?) primitive types from which all other types are derived. These are
+
+1. Int
+2. Array
+3. Struct
+4. Tuple
+ ?? 5. Function
+6. Union
+
+Int
+The Int is simply a signed integer of a specified width. Using the 'type' keyword the standard Nova library derives Char, Bool and Float.
+
+The width of Int is likely to be as wide as a word is on the computer architecture, but it doesn't have to be.
+
+Array
+The array, unlike the Int, may come in many flavors. For one, a 2-dimensional array is a different type than a 1-dimensional one, and the array may also contain different types. Some examples of arrays are
+
+Array 1 Int
+Array 2 Int
+Array 7 Char
+
+1-dimensional arrays can be abbreviated with square-brackets. Like this
+
+[Char] = Array 1 Char
+
+The function 'length' will return the number of indices in any array, and the function 'dimensions' will return the dimensions of an array as an array.
+
+Struct
+A struct is really a tuple, but with named fields. Structs can also inherit traits from classes, which tuples do not.
+
+You define new structs with the 'struct' keyword. Like this
+
+struct Point
+    Int x
+    Int y
+
+You can include type variables, like this
+
+struct Cons E
+    E      car
+    List E cdr
+
+When type variables are included, you really create a template for a struct. No actual struct is defined until you apply this template with an argument to E
+
+The fields of a struct can be accessed with dot notation. Like this
+
+p.x = (access "x" p)
+p.y = (access "y" p)
+
+The parser will expand dots into calls to the 'access' function
+
+When defining a struct, a function with the name of the struct, but with the first letter in lower case, is created. This function can be used to create instances of that struct. For example, given our definition of 'Point' above, new points would be created like this
+
+point (1,2)
+
+which would create a point where x i 1, and y is 2
+
+Tuple
+Tuples are like anonymous structs. Tuples are created with parentheses, like this
+
+(1,2,3)
+
+The types of the elements can be different
+
+(1,'a,"hello")
+
+A one element tuple is equivalent to its' element. There is no difference between (a) and 'a' except in how it is parsed.
+
+When applying a function to several arguments, a multi-element tuple is used. When returning several values, a multi-element tuple is used. This means that a function returning several values can be directly applied to another function expecting a tuple of the same type
+
+Function
+The function type is not a type you typically work with, except you work with it all the time. A function 
+
+Union
+A union is a type which is not known at compile time. A union is really a two-element tuple, where one element contains a type descriptor, telling what type is currently in this union, and then the value itself.
+
+All unions are limited. That is, no union may contain any type what so ever
+
+Defining your own types
+
+The programmer has 6 keywords with which to create new types. These are
+
+1. synonym
+2. type
+3. struct
+4. union
+5. enum
+6. class
+
+synonym
+With the 'synonym' you don't really create any new types. You just create a synonym for another type. The Nova library defines one synonym
+
+synonym String = {Char}
+
+That is, a 'String' is a list of Char
+
+All five keywords accept type variables. So if we wanted a short-hand way of saying a 2-dimensional array, we could write
+
+synonym A2 E = Array 2 E
+
+type
+With the type keyword, you create a new type that imitates another type, but is treated differently. That is, memory management algorithms will treat the new type the same way in which it treats the type that it imitates, but otherwise it is a new type. Ok
+
+type Float = Int
+
+This creates a new type called 'Float' that is treated like an 'Int' by memory management algorithms. However, the 'Float' will not typecheck as an 'Int' by the compiler. Now you can write new functions that behave differently for the 'Float' type than they behave for the 'Int' type.
+
+type CString = [Char]
+
+Now, if a function demands an argument of type 'CString', a [Char] wouldn't do
+
+The 'type' keyword works with all kinds of types.
+
+type Coordinate = Point
+
+when using 'type' to imitate structs, the field names remain.
+
+Coordinate coord = coordinate (4,6)
+coord.x = 4
+coord.y = 6
+
+A new constructor function is also created.
+
+struct
+the struct is much like the C struct, minus semi-colons.
+
+struct Point
+    Int x
+    Int y
+
+Structs may inherit from classes
+
+class Flying
+    Float altitude
+
+struct Flying >> Plane
+    String name
+
+Now, 'Plane' would inherit the 'alitude' field from the 'Flying' class, and any member functions written for 'Flying' (more on that when discussing classes)
+
+Multiple inheritance is possible
+
+class Destructible
+    Float life
+
+struct (Flying,Destructible) >> Bird
+    Color color
+
+union
+The 'union' keyword is just syntactic sugar for 'synonym'
+
+union Un = Int,Char
+
+is equivalent to
+
+synonym Un = Int | Char
+
+enum
+'enum' is also syntactic sugar, but it does more work than 'union'
+
+enum Bool = false, true
+
+expands into
+
+type Bool = Int
+
+Bool false = 0 as Bool
+Bool true = 1 as Bool
+
+Void print (Bool a) = switch a
+                        false -> print "false"
+                        true -> print "true"
+
+The 'as' keyword is used to safely (?) cast values that belong to the same class of types. That is, values that has been defined with 'type' for a specific type, and that type
+
+class

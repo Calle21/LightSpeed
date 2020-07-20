@@ -1,0 +1,47 @@
+A project in Nova is either a single file or a directory containing files, and possibly sub-directories.
+
+Directory structure do not have any effect on the result of your program. It is merely for the convenience of the programmer.
+
+A directory may also include non-nova files. That is, files without a .nova suffix. These will be sorted out of compilation.
+
+To the compiler it does not matter in which file a definition occurs. Every global definition is visible to the entire project.
+
+To use libraries, use the 'use' keyword, followed by the name of the libraries you'd like to use.
+
+use OpenGL, GLUT
+
+If there are colliding functions, you can use the 'use' keyword together with the 'from' keyword
+
+use openWindow from GLUT
+
+Alternatively you can also use the 'from' keyword directly in your code
+
+(openWindow from GLUT) (a,b,c)
+
+This will try to apply (a,b,c) to 'openWindow' as it appears in the GLUT library
+
+The 'use' keyword should probably appear in your main-file, or, if you write a library, in a separate use-file named 'use.nova'
+
+In order to write an application, you simply define an identifier called 'main'. This will be the entry point of your program. To write a library, you simply omit any definition of 'main'
+
+When you write a library, in order to not export a given identifier, use the 'locals' keyword
+
+locals += helper0, helper1
+
+The '+=' is only a mnemonic
+
+There can be no locals in an application. If you do specify some locals an error will occur.
+
+When importing a library, all identifiers are imported. There is no way to selectively import.
+
+When collisions occur, you don't have to specify a preference. An error will only occur if you actually reference an identifier and several matches appear.
+
+When compiling a project, use the name of your file or directory as an argument to the compiler
+
+nameOfCompiler fileOrDirectory
+
+This will create, in the current directory, a file with the same name as your directory or file, but with the '.nova' suffix removed if you used a file
+
+Additional options may be given to the compiler, but that is implementation dependent
+
+All files and directories in a Nova-project must be valid library names. A valid library name is any combination of upper case letters, lower case letters and digits.

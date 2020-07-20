@@ -1,0 +1,9 @@
+synonym PascalTriangle = {{Int}}
+
+PascalTriangle pascalTriangle
+  @makeLayers ({Int} previous = void)
+    this = map2 (`+`, 1, previous)
+    this : delay makeLayers this
+
+Int pascal (Int x, Int y)
+  (pascalTriangle ! y) ! x

@@ -1,5 +1,0 @@
-Void main
-  print "Is your name a palindrome? Enter your name to find out: "
-  s = getLine
-  palin s >> PrintLn "Yes!"
-  printLn "No"

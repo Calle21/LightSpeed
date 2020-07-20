@@ -1,0 +1,11 @@
+{Int} fibonacci
+  @rec (Int a = 0, Int b = 1)
+    Int c = a + b
+    delay c : rec (b,c)
+
+Int fibn (Int n)
+  fibonacci ! n
+
+{Int} primes
+  @fprimes ({Int} (p:xs) = {2..})
+    p : delay fprimes {x | x <- xs, x `mod` p != 0}

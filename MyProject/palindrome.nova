@@ -1,2 +1,0 @@
-Bool palin ([Char] str)
-  str == reverse str

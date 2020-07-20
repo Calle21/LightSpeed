@@ -1,0 +1,15 @@
+The tutorial is split up in three parts. 'examples', 'theory' and 'vocabulary'. I'd suggest you start off with the examples, which have explanatory comments on every line of code. After that the vocabulary would probably be good, and lastly the theory.
+
+There is no specific order in which you should read either of he files.
+
+This tutorial currently also serves as the specification of the Nova-language. If any ambiguity or doubts appear during implementation, you can contact me at calle.edlund21@gmail.com
+
+
+
+If you're using Vim and want syntax highlighting, add this to your ~/.vimrc
+
+set runtimepath+=path/to/LightSpeed/Nova
+
+and this to ~/.vim/ftdetect/nova.vim
+
+au BufRead,BufNewFile *.nova set filetype=nova

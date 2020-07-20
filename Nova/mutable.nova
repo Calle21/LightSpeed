@@ -1,0 +1,6 @@
+synonym Mutable A = Mutable A
+
+struct Reference A
+    Mutable A var
+
+Void (Mutable A a0) := (A a1) = ...

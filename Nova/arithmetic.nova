@@ -1,38 +1,38 @@
 type Float = Int
 
-Int (Int a) + (Int b) = ...
-Int (Int a) * (Int b) = ...
-Int (Int a) - (Int b) = ...
-Int (Int a) / (Int b) = ...
+Int (Int a) + (Int b) = a + b
+Int (Int a) * (Int b) = a * b
+Int (Int a) - (Int b) = a - b
+Int (Int a) / (Int b) = a / b
 
-Float (Float a) + (Float b) = ...
-Float (Float a) * (Float b) = ...
-Float (Float a) - (Float b) = ...
-Float (Float a) / (Float b) = ...
+Float (Float a) + (Float b) = a + b
+Float (Float a) * (Float b) = a * b
+Float (Float a) - (Float b) = a - b
+Float (Float a) / (Float b) = a / b
 
 Int (Int b) ^ (Int e)
-  e < 0  >> error "Negative exponent"
-  e == 0 >> 1
-  @loop (Int e = e) (Int res = b)
-    e == 1 >> res
-    loop (e - 1) (res * b)
+  if e < 0  -> error "Negative exponent"
+     e == 0 -> 1
+     true -> @loop (Int e = e) (Int res = b)
+               if e == 1 -> res
+                  true -> loop (e - 1, res * b)
 
 Float (Float b) ^ (Int e)
-  e == 0 >> 1
-  Bool neg = e < 0 >> True
-             False
-  Int e = abs e
-  @loop (Float res = b) (Int e = e)
-    e == 1 >> neg >> 1.0 / res
-              res
-    loop (res * b) (e - 1)
+  if e == 0 -> 1
+     true -> neg = if e < 0 -> true
+                      true -> false
+             e = abs e
+             @loop (Float res = b, Int e = e)
+               if e == 1 -> if neg -> 1.0 / res
+                               true -> res
+                  true -> loop (res * b, e - 1)
 
 Int abs (Int i)
-  i < 0 >> complement (i + 1)
-  i
+  if i < 0 -> complement (i + 1)
+     true -> i
 
 Int fact (Int n)
-  n < 0 >> error "Factorial of negative integer"
-  @loop (Int n = n)
-    n == 0 >> 1
-    n * loop (n - 1)
+  if n < 0 -> error "Factorial of negative integer"
+     true -> @loop (Int n = n)
+               if n == 0 -> 1
+                  true -> n * loop (n - 1)

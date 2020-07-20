@@ -1,0 +1,8 @@
+Int count -- this immediate value is of type Int and is named 'count'
+  static Int count = 0 -- creates a static variable of type 'Int' named 'count' whose initial value is 0. Static variables are always mutable and their value is retained between function calls. That is, this static variable is initialized to zero at compile time only, and then only touched by the assignment statements
+  Int ret = count -- we read (action) the mutable variable 'count' and put it in ret, for later retrieval
+  count := count + 1 -- we update 'count' (not an action) so that it increases with one
+  ret -- we return ret
+
+ -- You can read more about actions versus pure code in 'theory/actions'
+ -- One thing to note is that 'count' is an action, and will thus be re-evaluated every time it is refered to

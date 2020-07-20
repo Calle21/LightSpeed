@@ -1,0 +1,4 @@
+{(A,A)} pair ({A} ls)
+  match ls
+    (x0:x1:xs) -> (x0,x1) : pair xs
+    _          -> void

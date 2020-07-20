@@ -1,6 +1,0 @@
-[E] reverse ([E] arr)
-  len = arr.len
-  @loop (Int end = len - 1) (Int begin = 0) ([Int] new = newArray len)
-    begin == len >> new
-    else
-    loop (end - 1) (begin + 1) (new {begin = arr ! end})

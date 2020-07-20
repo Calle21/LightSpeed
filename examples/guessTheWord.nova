@@ -1,0 +1,25 @@
+Void guess
+  print "Enter a word: "
+  word = getLine
+  if all (lower, word) -> [Char] word = fromList word
+                          [Mutable Bool] guessed = array (length word,false)
+                          Mutable Int guesses = 0
+                          while not (all (id,guessed))
+                            printWord (word,guessed)
+                            fill (getChar, word, guessed)
+                            guesses := guesses + 1
+                          format ("You guessed the word in %0% guesses.", [show count])
+     true -> guess
+
+Void printWord ([Char] word, [Mutable Bool] guessed)
+  for (i 0 (length word - 1))
+   if guessed ! i -> print (word ! i)
+                     print 'space
+      true -> print "_ "
+  print 'newline
+
+Void fill (Char c, [Char] word, [Mutable Bool] guessed)
+  for (i 0 (length word - 1))
+    if c == word ! i -> guessed ! i := true
+       true -> void
+

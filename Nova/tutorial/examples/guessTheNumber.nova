@@ -1,0 +1,16 @@
+Void guessTheNumber -- 'guessTheNumber' is an immediate value of type 'Void'
+  print "Enter a number" -- will print "Enter a number" to standard output
+  String s = getLine -- Receives a line into String s
+  if all (digit,s) -> loop (readint s) -- if every character in the string is a digit, then read the integer and give it to loop
+     else -> guessTheNumber -- otherwise begin again
+
+Void loop (Int n) -- 'loop' is a function of one arguement that returns 'Void'. The argument is of type 'Int'
+  Int n = n - 1 -- we create a new 'Int' which is one less than the previous 'n'. This 'n' will shadow the previous
+  @loop -- begin a recursive loop
+    print "Guess: " -- print "Guess: " to standard output
+    String s = getLine -- get a line into "String s"
+    if all (digit,s) -> Int guess = readint s -- read the string as an 'Int' if all characters are digits.
+                        if guess > n -> print "Smaller" >> loop -- print "Smaller" and then loop if the guess is too big
+                           guess < n -> print "Bigger" >> loop -- print "Bigger" and loop if the guess is too small
+                           else -> print "You won" -- otherwise print "You won" (and then return) (print returns 'Void')
+       else -> loop -- loop if not all characters in 's' are digits

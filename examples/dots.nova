@@ -1,0 +1,38 @@
+struct pixel
+    Mutable Float r
+    Mutable Float g
+    Mutable Float b
+
+synonym Screen = Array 2 Pixel
+
+synonym Coordinate = (Mutable Int,Mutable Int)
+
+Int numDots = 250
+
+Void dots (Screen screen)
+  mapVoid (screen, pixelToBlack)
+  updateScreen
+  (Int width,Int height) = dimensions screen
+  [Coordinate] coords = array (numDots, lambda -> getRandomCoordinate (width,height))
+  while isAsleep
+   Int i = random numDots
+   Coordinate coord = coords ! i
+   Pixel p = screen ! coord
+   if isBlack p -> pixelToBlack p
+                   updateCoord (coord, width, height)
+      true -> pixelToRandomColor p
+   updateScreen
+
+Void updateCoord (Coordinate coord, Int width, Int height)
+  1of2 coord := random width
+  2of2 coord := random height
+
+Coordinate getRandomCoordinate (Int width, Int height)
+  coordinate (random width, random height)
+
+Void pixelToBlack (Pixel p)
+  p.r := 0.0
+  p.g := 0.0
+  p.b := 0.0
+
+Void updateScreen = ...

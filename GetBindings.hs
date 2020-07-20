@@ -1,9 +1,9 @@
 module GetBindings (skipAhead
                    ,getBindings
                    ,get
-                   ,typeKeyword
                    ,readEquals
                    ,readNewline
+                   ,tList
                    ,comesType
                    ,readCap
                    ,readType
@@ -14,30 +14,22 @@ import Share (Token(..), Inf(Inf))
 
 getBindings :: [(String,Inf)] -> [Token] -> [(Token, String, Token)]
 getBindings infs xs = case xs of
-                       (SetFileName s:xs') -> recTop infs 1 s xs'
-                       _                   -> error "Expected filename setter for getBindings"
+                        (SetFileName s:xs') -> recTop infs 1 s xs'
+                        _                   -> error "Expected filename setter for getBindings"
 
-transformLet :: ([Token],[String],[Token]) -> [(Token,String,Token)]
-transformLet (x:xs,y:ys,z:zs) = (x,y,z) : transformLet (xs,ys,zs)
-transformLet []               = []
-
-typeKeyword :: String -> Bool
-typeKeyword s = s `elem` ["struct","union","type","synonym"]
-
-comesTypeDeclaration :: Int -> FilePath -> [Token] -> Bool
-comesTypeDeclaration ln filename xs = case get ln filename xs of
-                                        (1,Keyword s,_,_) -> typeKeyword s
-                                        _                 -> False
+--transformLet :: ([Token],[String],[Token]) -> [(Token,String,Token)]
+--transformLet (x:xs,y:ys,z:zs) = (x,y,z) : transformLet (xs,ys,zs)
+--transformLet []               = []
 
 recTop :: [(String,Inf)] -> Int -> FilePath -> [Token] -> [(Token,String,Token)]
 recTop infs ln filename xs =
   case xs of
     (SetFileName s:xs') -> recTop infs 1 s xs'
-    (SetCol 1:xs')      -> if comesTypeDeclaration ln filename xs
-                           then let (ln',xs') = skipAhead ln xs'
-                                in recTop infs ln' filename xs'
-                           else let (types,names,vals,ln',xs') = readBinding infs ln filename xs
+    (SetCol 1:xs')      -> if comesType ln filename xs
+                           then let (tp,name,val,ln',xs') = readBinding infs ln filename xs
                                 in transformLet (types,names,vals) ++ recTop infs ln' filename xs'
+                           else let (ln',xs') = skipAhead ln xs'
+                                in recTop infs ln' filename xs'
     (Newline:xs')       -> recTop infs ln' filename xs'
     []                  -> []
     _                   -> error' ln filename "Top-level expressions must start on column 1"
@@ -51,7 +43,7 @@ readBinding infs ln filename xs =
                                 (tns,ln2,xs2) = readDelimiter ')' readTypeAndName ln0 filename xs0
                             in (Left tns,ln2,xs2)
       (exp,ln1,xs1)  = case get ln0 filename xs0 of
-                         (_,Keyword "=",ln1,xs1) -> readExpr infs (Just $ getReturnType bind) [] (Left 0) ln1 filename xs1
+                         (_,Keyword "=",ln1,xs1) -> readExpr infs (getReturnType bind) [] (Left 0) ln1 filename xs1
                          (_,Newline,ln1,xs1)     -> let (indent,_,_,_) = get ln filename xs
                                                     in readExpr infs (Just $ getReturnType bind) [] (Left indent) ln1 filename xs1
                          _                       -> error' ln1 filename "Expected equals sign or newline"
@@ -175,49 +167,63 @@ readSub infs et ln filename xs =
        in (Let (transformLet (tps,nms,vals)) rest, ln2, xs2)
   else let (c,t,ln0,xs0) = get ln filename xs
        in case t of
-            Keyword "lambda" -> readLambda infs c ln0 filename xs0
-            Keyword "case"   -> readCase infs et c ln0 filename xs0
-            Keyword "tcase"  -> readTCase infs et c ln0 filename xs0
-            Keyword "switch" -> readSwitch infs et c ln0 filename xs0
-            Keyword "range"  -> readRange infs et c ln0 filename xs0
-            Keyword "modify" -> readModify infs c ln0 filename xs0
-            Access _ _       -> (t,ln0,xs0)
-            Char _           -> (t,ln0,xs0)
-            Float _          -> (t,ln0,xs0)
-            Int _            -> (t,ln0,xs0)
-            Keyword "..."    -> (t,ln0,xs0)
-            Keyword "_"      -> (t,ln0,xs0)
-            Name _           -> (t,ln0,xs0)
-            String _         -> (t,ln0,xs0)
-            Punct '('        -> let (exps,ln1,xs1) = readDelimiter ')'
-                                                                   (readExpr infs Nothing [] (Left 0))
-                                                                   ln0
-                                                                   filename
-                                                                   xs0
-                                in (Tuple exps, ln1, xs1)
-            Punct '['        -> let (exps,ln1,xs1) = readDelimiter ']'
-                                                                   (readExpr infs Nothing [] (Left 0))
-                                                                   ln0
-                                                                   filename
-                                                                   xs0
-                                in (Array [length exps] exps, ln1, xs1)
-            Punct '{'        -> let (exps,ln1,xs1) = readDelimiter '}'
-                                                                   (readExpr infs Nothing [] (Left 0))
-                                                                   ln0
-                                                                   filename
-                                                                   xs0
-                                in (makeList exps, ln1, xs1)
-            Loop name        -> readLoop infs et name c ln0 filename xs0
-            _                -> error' ln filename "Expected sub-expression"
+            Keyword "lambda"  -> readLambda infs c ln0 filename xs0
+            Keyword "case"    -> readCase infs et c ln0 filename xs0
+            Keyword "tcase"   -> readTCase infs et c ln0 filename xs0
+            Keyword "switch"  -> readSwitch infs et c ln0 filename xs0
+            Keyword "range"   -> readRange infs et c ln0 filename xs0
+            Keyword "modify"  -> readModifyDestroy Modify infs c ln0 filename xs0
+            Keyword "destroy" -> readModifyDestroy Destroy infs c ln0 filename xs0
+            Keyword "pure"    -> readPure infs et ln0 filename xs0
+            Access _ _        -> (t,ln0,xs0)
+            Char _            -> (t,ln0,xs0)
+            Float _           -> (t,ln0,xs0)
+            Int _             -> (t,ln0,xs0)
+            Keyword "..."     -> (t,ln0,xs0)
+            Keyword "_"       -> (t,ln0,xs0)
+            Name _            -> (t,ln0,xs0)
+            String _          -> (t,ln0,xs0)
+            Hash _            -> (t,ln0,xs0)
+            Punct '('         -> let (exps,ln1,xs1) = readDelimiter ')'
+                                                                    (readExpr infs Nothing [] (Left 0))
+                                                                    ln0
+                                                                    filename
+                                                                    xs0
+                                 in (Tuple exps, ln1, xs1)
+            Punct '['         -> let (exps,ln1,xs1) = readDelimiter ']'
+                                                                    (readExpr infs Nothing [] (Left 0))
+                                                                    ln0
+                                                                    filename
+                                                                    xs0
+                                 in (Array [length exps] exps, ln1, xs1)
+            Punct '{'         -> let (exps,ln1,xs1) = readDelimiter '}'
+                                                                    (readExpr infs Nothing [] (Left 0))
+                                                                    ln0
+                                                                    filename
+                                                                    xs0
+                                 in (makeList exps, ln1, xs1)
+            Loop name         -> readLoop infs et name c ln0 filename xs0
+            _                 -> error' ln filename "Expected sub-expression"
 
 makeList :: [Token] -> Token
 makeList xs = undefined
 
-readModify :: [(String,Inf)] -> Int -> Int -> FilePath -> [Token] -> (Token,Int,[Token])
-readModify infs indent ln filename xs =
+readPure :: [(String,Inf)] -> Maybe Token -> Int -> FilePath -> [Token] -> (Token,Int,[Token])
+readPure infs et ln filename xs =
+  let (exp,ln0,xs0) = readExpr infs et [] (Left 0) ln filename xs
+  in (Pure exp,ln0,xs0)
+
+readModifyDestroy :: (Token -> [(Token,Token)] -> Token)
+                  -> [(String,Inf)]
+                  -> Int
+                  -> Int
+                  -> FilePath
+                  -> [Token]
+                  -> (Token,Int,[Token])
+readModifyDestroy fn infs indent ln filename xs =
   let (exp,ln0,xs0) = readExpr infs Nothing [] (Left 0) ln filename xs
       (cl,ln1,xs1)  = readCl ln0 xs0
-  in (Modify exp cl, ln1, xs1)
+  in (fn exp cl, ln1, xs1)
   where
   readCl :: Int -> [Token] -> ([(Token,Token)], Int, [Token])
   readCl ln xs =
@@ -262,7 +268,7 @@ readExpr infs et acc indent ln filename xs =
                               Right c' -> c == c'
                          then let (exp0,ln0,xs0) = readSub infs et ln filename xs
                                   (exp1,ln1,xs1) = readExpr1 infs et exp0 ln0 filename xs0
-                                  (exp2,ln2,xs2) = readPostfixKeyword infs et c exp1 ln1 filename xs1
+                                  (exp2,ln2,xs2) = readPostfix infs et c exp1 ln1 filename xs1
                               in case get ln2 filename xs2 of
                                    (_,Newline,ln3,xs3) -> let (c',_,_,_) = get ln3 filename xs3
                                                             in if c' == c
@@ -277,21 +283,27 @@ readExpr infs et acc indent ln filename xs =
   goFinish exp ln xs = let ret = if null acc then exp else Seq $ reverse $ exp : acc
                        in (ret,ln,xs)
 
-readPostfixKeyword :: [(String,Inf)]
-                   -> Maybe Token
-                   -> Int
-                   -> Token
-                   -> Int 
-                   -> FilePath
-                   -> [Token]
-                   -> (Token,Int,[Token])
-readPostfixKeyword infs et indent exp ln filename xs =
+readPostfix :: [(String,Inf)]
+            -> Maybe Token
+            -> Int
+            -> Token
+            -> Int 
+            -> FilePath
+            -> [Token]
+            -> (Token,Int,[Token])
+readPostfix infs et indent exp ln filename xs =
   case get ln filename xs of
     (_,Keyword ">>",ln0,xs0)   -> readIf infs et indent exp ln0 filename xs0
     (_,Keyword "as",ln0,xs0)   -> readAs exp ln0 filename xs0
     (_,Keyword "from",ln0,xs0) -> readFrom exp ln0 filename xs0
     (_,Keyword "the",ln0,xs0)  -> readThe exp ln0 filename xs0
+    (_,Punct ';',ln0,xs0)      -> let (exp2,ln1,xs1) = readExpr infs et [] (Left 0) ln0 filename xs0
+                                  in (Seq (exp2 : getSeq exp2), ln1, xs1)
     _                          -> (exp,ln,xs)
+
+getSeq :: Token -> [Token]
+getSeq (Seq ts) = ts
+getSeq t        = [t]
 
 readThe :: Token -> Int -> FilePath -> [Token] -> (Token,Int,[Token])
 readThe exp ln filename xs =
@@ -330,7 +342,7 @@ readExprOp2 infs et exp1 s0 exp2 ln filename xs =
     (_,Op s1,ln0,xs0)          -> case getWinner s0 s1 of
                                     'l' -> readExprOp1 infs
                                                        et
-                                                       (Funcall (Op s0) (Tuple [exp1,exp2]))
+                                                       (Funcall (Name s0) (concatTuple exp1 exp2))
                                                        s1
                                                        ln0
                                                        filename
@@ -342,13 +354,13 @@ readExprOp2 infs et exp1 s0 exp2 ln filename xs =
                                                                              ln0
                                                                              filename
                                                                              xs0
-                                           in (Funcall (Op s0) (Tuple [exp1,exp2'])
+                                           in (Funcall (Name s0) (concatTuple exp1 exp2')
                                               ,ln1
                                               ,xs1)
-    (_,Keyword "as",ln0,xs0)   -> Funcall (Op s0) (Tuple [exp1,exp2])
-    (_,Keyword ">>",ln0,xs0)   -> Funcall (Op s0) (Tuple [exp1,exp2])
-    (_,Keyword "from",xs0,ln0) -> Funcall (Op s0) (Tuple [exp1,exp2])
-    (_,Keyword "the",xs0,ln0)  -> Funcall (Op s0) (Tuple [exp1,exp2])
+    (_,Keyword "as",ln0,xs0)   -> Funcall (Name s0) (concatTuple exp1 exp2)
+    (_,Keyword ">>",ln0,xs0)   -> Funcall (Name s0) (concatTuple exp1 exp2)
+    (_,Keyword "from",xs0,ln0) -> Funcall (Name s0) (concatTuple exp1 exp2)
+    (_,Keyword "the",xs0,ln0)  -> Funcall (Name s0) (concatTuple exp1 exp2)
     _                          -> let (exp2',ln0,xs0) = readExpr1 infs et exp2 ln filename xs
                                   in readExprOp2 infs et exp1 s0 exp2' ln0 filename xs0
   where
@@ -357,17 +369,26 @@ readExprOp2 infs et exp1 s0 exp2 ln filename xs =
                     then case s0 `lookup'` infs of
                            Inf 'r' _ -> 'r'
                            Inf 'l' _ -> 'l'
-                    else let Inf _ s0' = s0 `lookup'` infs
-                             Inf _ s1' = s1 `lookup'` infs
-                         in if s0' > s1' then 'l'
-                            else if s1' > s0' then 'r'
-                                 else error' ln filename ("These operators have the same precedence level. Please use parentheses: "
-                                                            ++ s0 ++ " " ++ s1)
+                    else let Inf c0 i0 = s0 `lookup'` infs
+                             Inf c1 i1 = s1 `lookup'` infs
+                         in if i0 > i1 then 'l'
+                            else if i1 > i0 then 'r'
+                                 else if c0 == c1 then c0
+                                      else error' ln filename ("Couldn't resolve winner. Please use parentheses (" ++ s0 ++ ", " ++ s1 ++ ")")
     where
     lookup' :: String -> [(String,Inf)] -> Inf
     lookup' s infs = case s `lookup` infs of
                        Just inf -> inf
-                       Nothing  -> error' ln filename ("No infix declaration for op " ++ s)
+                       Nothing  -> Inf 'l' 6
+
+concatTuple :: Token -> Token -> Token
+concatTuple t0 t1 = let l0 = tList t0
+                        l1 = tList t1
+                    in Tuple (l0 ++ l1)
+
+tList :: Token -> [Token]
+tList (Tuple tks) = tks
+tList tk          = [tk]
 
 readExpr1 :: [(String,Inf)]
           -> Maybe Token
@@ -387,8 +408,9 @@ readExpr1 infs et exp1 ln filename xs =
     (_,Keyword "the",_,_)  -> (exp1,ln,xs)
     (_,Punct '.',ln0,xs0)  -> let (s,ln1,xs1) = readName ln0 filename xs0
                               in readExpr1 infs et (Access s exp1) ln1 filename xs1
-    _                      -> let (exp2,ln0,xs0) = readSub infs Nothing ln filename xs
-                              in readExpr1 infs et (Funcall exp1 exp2) ln0 filename xs0
+    _                      -> let (exp2,ln0,xs0) = readSub infs DR ln filename xs
+                              in case get xs0 of
+                                   readExpr1 infs et (Funcall exp1 exp2) ln0 filename xs0
 
 readFrom :: Token -> Int -> FilePath -> [Token] -> (Token,Int,[Token])
 readFrom exp ln filename xs =
@@ -697,9 +719,9 @@ comesType1 ln filename xs =
 
 
 readEndSquare :: Int -> FilePath -> [Token] -> (Int,[Token])
-readEndSquare ln filename xs = case get ln filename xs of
-                                 (_,Punct ']',ln0,xs0) = (ln0,xs0)
-                                 _                     = error' ln filename "Expected a closing square bracket"
+readEndSquare ln filename xs = case get xs of
+                                 (_,Punct ']',xs0) = (ln,xs0)
+                                 _                 = error' ln filename "Expected a closing square bracket"
 
 skipAhead :: Int -> [Token] -> (Int,[Token])
 skipAhead ln [] = (ln,[])
@@ -709,18 +731,14 @@ skipAhead ln xs = case head xs of
                     SetFileName _ -> (ln,xs)
                     _             -> skipAhead ln (tail xs)
 
-get :: Int -> FilePath -> [Token] -> (Int,Token,Int,[Token])
-get ln filename (SetCol c:t:xs) = case t of
-                                    Keyword "\\" -> case xs of
-                                                      (Newline:xs0) -> get (ln + 1) filename xs0
-                                                      _             -> error' ln filename "Expected newline after backslash"
-                                    _            -> (c,t,xs,ln)
-get ln _        (Newline:xs)    = recNewline (ln + 1) xs
+get :: [Token] -> (Int,Token,[Token])
+get (SetCol c:t:xs) = (c,t,xs)
+get (SetLine ln:xs) = recNewline ln xs
   where
-  recNewline :: Int -> [Token] -> (Int,Token,Int,[Token])
-  recNewline ln (Newline:xs) = recNewline (ln + 1) xs
-  recNewline ln xs           = (0,Newline,ln,xs)
-get ln _        xs              = (0,EOF,ln,xs)
+  recNewline :: Int -> [Token] -> (Int,Token,[Token])
+  recNewline _  (SetLine ln:xs) = recNewline ln xs
+  recNewline ln xs              = (0,SetLine ln,xs)
+get xs = (0,EOF,xs)
 
 readEquals :: Int -> FilePath -> [Token] -> (Int,[Token])
 readEquals ln filename xs = case get ln filename xs of
@@ -731,6 +749,11 @@ readNewline :: Int -> FilePath -> [Token] -> (Int,[Token])
 readNewline ln filename xs = case get ln filename xs of
                                (_,Newline,ln0,xs0) -> (ln0,xs0)
                                _                   -> error' ln filename "Expected newline"
+
+readEndBracket :: Int -> FilePath -> [Token] -> (Int,[Token])
+readEndBracket ln filename xs = case get ln filename xs of
+                                  (_,Punct '}',ln0,xs0) -> (ln0,xs0)
+                                  _                     -> error' ln filename "Expected end bracket"
 
 readDelimiter :: Char
               -> (Int -> FilePath -> [Token] -> (Token,Int,[Token]))
@@ -803,6 +826,9 @@ readTypeSub ln filename xs =
     (_,Punct '[',ln0,xs0)   -> let (tp,ln1,xs1) = readType ln0 filename xs0
                                    (ln2,xs2)    = readEndSquare ln1 filename xs1
                                in (AR 1 tp, ln2, xs2)
+    (_,Punct '{',ln0,xs0)   -> let (tp,ln1,xs1) = readType ln0 filename xs0
+                                   (ln2,xs2)    = readEndBracket ln1 filename xs1
+                               in (LU "List" [tp], ln2, xs2)
     (_,Punct '(',ln0,xs0)   -> let (tps,ln1,xs1) = readDelimiter ')' readType ln0 filename xs0
                                in (Tuple tps, ln1, xs1)
     (_,Cap name,ln0,xs0)    -> (LU name (Tuple []), ln0, xs0)

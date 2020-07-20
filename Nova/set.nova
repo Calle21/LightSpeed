@@ -1,0 +1,69 @@
+union Set E = SetNode E, Void
+
+struct SetNode E
+    SetNode E left
+    E         leaf
+    SetNode E right
+
+struct Map (K,E)
+    K key
+    E elem
+
+Bool (Map (K,E) m0) > (Map (K,E) m1)
+  m0.key > m1.key
+
+Bool (Map (K,E) m0) < (Map (K,E) m1)
+  m0.key < m1.key
+
+(E | Void) lookup (K key, Set (Map (K,E)) tree)
+  tcase tree
+    Void -> void
+    SetNode (Map (K,E))
+      Map (K,E) map = tree.leaf
+      
+
+Bool member (E elt, Set E tree)
+  tcase tree
+    Void -> false
+    SetNode E -> E leaf = tree.leaf
+                 if elt > leaf -> member (elt,tree.right)
+                    elt < leaf -> member (elt,tree.left)
+                    true -> true
+
+Set E insert (E elt, Set E tree)
+  tcase tree
+    Void -> setNode (void,elt,void)
+    SetNode E -> E leaf = tree.leaf
+                 if elt > leaf -> modify tree
+                                    right = insert (elt,tree.right)
+                    elt < leaf -> modify tree
+                                    left = insert (elt,tree.left)
+                    true -> tree
+
+Set E delete (E elt, Set E tree)
+  tcase tree
+    Void -> void
+    SetNode E -> E leaf = tree.leaf
+                 if elt > leaf -> modify tree
+                                    right = delete (elt,tree.right)
+                    elt < leaf -> modify tree
+                                    left = delete (elt,tree.left)
+                    true -> percolate (tree.left,tree.right)
+
+Set E percolate (Set E t0, Set E t1)
+  switch pure random 2
+    0 -> tcase t0
+           Void -> t1
+           SetNode E -> modify t0
+                          left = percolate (t0.left,t0.right)
+                          right = t1
+    1 -> tcase t1
+           Void -> t0
+           SetNode E -> modify t1
+                          left = t0
+                          right = percolate (t1.left,t1.right)
+
+Int size (Set E tree)
+  tcase tree
+    Void -> 0
+    SetNode E -> size tree.left + 1 + size tree.right

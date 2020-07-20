@@ -1,31 +1,39 @@
+locals += diff
+
 type Char = Int
 
 Bool alpha (Char c)
-  lower c | upper c
+  lower c || upper c
 
-Int diff = int 'a - int 'A
+Int charToDigit (Char c)
+  i = (c as Int) - ('0 as Int)
+  range i
+    (0,9) -> i
+    (_,_) -> error "Not a digit"
 
 Bool digit (Char c)
   range c
     ('0,'9) -> true
-  false
+    (_,_)   -> false
 
 Bool lower (Char c)
   range c
     ('a,'z) -> true
-  false
+    (_,_)   -> false
+
+Int diff = int 'a - int 'A
 
 Char toLower (Char c)
   range c
     ('A,'Z) -> char (int c + diff)
-  c
+    (_,_)   -> c
 
 Char toUpper (Char c)
   range c
     ('a,'z) -> char (int c - diff)
-  c
+    (_,_)   -> c
 
 Bool upper (Char c)
   range c
     ('A,'Z) -> true
-  false
+    (_,_)   -> false

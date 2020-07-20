@@ -1,17 +1,99 @@
 E ([E] arr) ! (Int i) = ...
 
+[E] array (Int len, E start)
+  [E] arr = pure junkArray len -- Dangerous
+  for (i 0 (len - 1))
+    destroy arr
+      i = start
+  arr
+
+[E] array (Int len, E <- () build)
+  [E] arr = pure junkArray len -- Dangerous
+  for (i 0 (len - 1))
+    destroy arr
+      i = build ()
+  arr
+
 (Int | Void) binsearch (E elem, [E] arr)
   @loop (Int lo = 0, Int hi = length arr - 1)
-    lo > hi >> void as (Int | Void)
-    Int mid = (lo + hi) / 2
-    E midelem = arr ! mid
-    elem < midelem >> loop (lo, mid - 1)
-    elem > midelem >> loop (mid + 1, hi)
-    mid as (Int | Void)
+    if lo > hi -> void
+       else -> Int mid = (lo + hi) / 2
+               E midelem = arr ! mid
+               if elem < midelem -> loop (lo, mid - 1)
+                  elem > midelem -> loop (mid + 1, hi)
+                  else -> mid
+
+[E] emptyArray = pure junkArray 0
+
+[E] fromList ({E} ls)
+  Int len = length ls
+  [E] arr = junkArray len -- Dangerous
+  @loop ({E} ls = ls)
+         Int i = 0)
+    if i == len -> arr
+       else -> destroy arr
+                 i = ls.car
+               loop (ls.cdr, i + 1)
 
 Bool (E elt) `in` ([E] arr)
   Int end = length arr
   @loop (Int i = 0)
-    i   == end     >> false
-    elt == arr ! i >> true
-    loop (i + 1)
+    if i   == end -> false
+       elt == arr ! i -> true
+       else -> loop (i + 1)
+
+[E] junkArray (Int len) = junkArray len
+
+{E} list ([E] arr)
+  Int end = length arr
+  @loop (Int i = 0)
+    if i == end -> void
+       else -> (arr ! i) : loop (i + 1)
+
+ -- Pools
+
+struct Pool OBJ
+    [Mutable OBJ] arr
+    Mutable Int   vacant
+
+Pool OBJ makePool (Int size, E <- () builder)
+  pool
+    (array (size,builder)
+     size)
+
+OBJ getObj (Pool OBJ p, OBJ <- () builder)
+  Int v = p.vacant
+  if v == 0 -> builder ()
+     else -> Int v = v - 1
+             p.vacant := v
+             p.arr ! v
+
+Void returnObj (OBJ obj, Pool OBJ p)
+  Int v = p.vacant
+  if v == length p.arr -> void
+     else -> p.arr ! v := obj
+             p.vacant := v + 1
+
+ -- Stacks
+
+struct Stack E
+    [Mutable (E | Void)] arr
+    Mutable Int          size
+
+Stack E makeStack (Int size)
+  stack (array (size,void), 0)
+
+E pop (Stack E s)
+  Int num = s.size
+  if num == 0 -> error "Stack underflow"
+     else -> Int num = num - 1
+             s.size := num
+             E ret = s.arr ! num
+             s.arr ! num := void
+             ret
+
+Void push (E obj, Stack E s)
+  Int num = s.size
+  if num == length s.arr -> error "Stack overflow"
+     else -> s.arr ! num := obj
+             s.size := num + 1

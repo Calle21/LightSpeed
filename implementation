@@ -1,0 +1,22 @@
+This document describes some useful implementation details of LightSpeed. It does not in any way describe or define the Nova language itself
+
+The representation of structs and tuples
+One element tuple and structs are raw values. Multi-element tuple and structs are pointers to an array of raw values. The array in this sense not being a nova-array, but just a chunk of memory with the values in succession.
+
+What this means is that a struct of a single element, say an Int, will not be allocated as a struct to be garbage collected, but rather allocated the same way an Int would be (Ints are not garbage collected on 64-bit machines, because they fit into a single word of memory)
+
+If a tuple or struct contains many fields onthe other hand, they will be represented as a pointer pointing to the chunk of memory holding the elements. So an array of pairs
+
+[(A,B)]
+
+would contain a series of pointers, pointing to chunks of pairs
+
+This approach does slow down access a bit, but it speeds of sharing of data structure, which is what LightSpeed bets on
+
+When tuples are applied to functions and returned from functions however, they are allocated in registers, and thus not represented as a pointer
+
+llvm
+LightSpeed uses the llvm as intermediary code. This means that other folks take care of code generation.
+
+Int
+In LightSpeed Ints are always 64bit wide. This may be slow on 32-bit machines, but Floats get to be long

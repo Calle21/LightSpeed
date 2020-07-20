@@ -1,0 +1,5 @@
+(Int,Int) getInts (Int a)
+  parallel
+    Int b <- fn0 a
+    Int c <- fn1 a
+  (b,c)

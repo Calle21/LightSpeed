@@ -1,0 +1,5 @@
+Int getCount
+  static Int count = 0
+  Int ret = count
+  count := count + 1
+  ret

@@ -4,7 +4,6 @@ import Share (Token(..))
 import GetBindings (skipAhead
                    ,get
                    ,comesType
-                   ,typeKeyword
                    ,readEquals
                    ,readNewline
                    ,readType
@@ -18,6 +17,9 @@ getTypes :: [Token] -> [(String, Token)]
 getTypes (x:xs) = case x of
                     SetFileName s -> recTop 1 s xs
                     _             -> error "Expected a filename setter for getTypes"
+
+isTypeKeyword :: String -> Bool
+isTypeKeyword s = s `elem` ["struct","union","type","synonym","enum"]
 
 recTop :: Int -> FilePath -> [Token] -> [(String, Token)]
 recTop ln filename xs =
@@ -41,10 +43,11 @@ recTop ln filename xs =
                  in recTop ln0 filename xs0
 
 readSynonym :: TypeReader
-readSynonym ln filename xs = let (nm,ln0,xs0) = readCap ln filename xs
-                                 (ln1,xs1)    = readEquals ln0 filename xs0
-                                 (tp,ln2,xs2) = readType ln1 filename xs1
-                             in (nm,SY tp,ln2,xs2)
+readSynonym ln filename xs = let (nm,ln0,xs0)   = readCap ln filename xs
+                                 (vars,ln1,xs1) = readVars ln0 filename xs0
+                                 (ln2,xs2)      = readEquals ln1 filename xs1
+                                 (tp,ln3,xs3)   = readType ln2 filename xs2
+                             in (nm,mkType vars tp,ln3,xs3)
 
 readVars :: Int -> FilePath -> [Token] -> ([String],Int,[Token])
 readVars ln filename xs =
@@ -75,7 +78,7 @@ readUnion ln filename xs = let (nm,ln0,xs0)   = readCap ln filename xs
   readMembers acc ln xs =
     let (tp,ln0,xs0) = readType ln filename xs
     in case tp of
-         UN _ -> error' ln filename "Unions cannot contain unions"
+         UN _ -> error' ln filename "Unions cannot contain anonymous unions"
          _    -> case get ln0 filename xs0 of
                    (_,Punct ',',ln1,xs1) -> readMembers (tp : acc) ln1 xs1
                    _                     -> (tp : acc,ln0,xs0)
@@ -85,10 +88,11 @@ mkType [] tp = tp
 mkType xs tp = PR xs tp
 
 readType' :: TypeReader
-readType' ln filename xs = let (nm,ln0,xs0) = readCap ln filename xs
-                               (ln1,xs1)    = readEquals ln0 filename xs0
-                               (tp,ln2,xs2) = readType ln1 filename xs1
-                           in (nm,TP tp,ln2,xs2)
+readType' ln filename xs = let (nm,ln0,xs0)   = readCap ln filename xs
+                               (vars,ln1,xs1) = readVars ln0 filename xs0
+                               (ln2,xs2)      = readEquals ln1 filename xs1
+                               (tp,ln3,xs3)   = readType ln2 filename xs2
+                           in (nm,mkType vars $ TP nm tp,ln3,xs3)
 
 readStruct :: TypeReader
 readStruct ln filename xs = let (name,ln0,xs0)   = readCap ln filename xs

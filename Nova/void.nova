@@ -1,3 +1,15 @@
+export Void, void, something, null
+
 synonym Void = ()
 
 Void void = void
+
+Bool something (A a)
+  tcase a
+    Void -> false
+  true
+
+Bool null (A a)
+  tcase a
+    Void -> true
+  false

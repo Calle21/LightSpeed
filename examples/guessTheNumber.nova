@@ -1,0 +1,16 @@
+Void guessTheNumber
+  print "Enter a number"
+  String s = getLine
+  if all (digit,s) -> loop (readint s)
+     else -> guessTheNumber
+
+Void loop (Int n)
+  Int n = n - 1
+  @loop
+    print "Guess: "
+    String s = getLine
+    if all (digit,s) -> Int guess = readint s
+                        if guess > n -> print "Smaller" >> loop
+                           guess < n -> print "Bigger" >> loop
+                           else -> print "You won"
+       else -> loop

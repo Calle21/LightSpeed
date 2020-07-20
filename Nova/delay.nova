@@ -1,0 +1,12 @@
+union Delay T = T, T <- ()
+
+struct Delay T
+    Mutable (T | T <- ()) field
+
+T getDelay (Delay T del)
+  T f = pure read del.field
+    tcase f
+      T -> f
+      T <- () -> T f = f ()
+                 del.field := f
+                 f
