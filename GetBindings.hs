@@ -184,6 +184,7 @@ readSub infs et ln filename xs =
             Name _            -> (t,ln0,xs0)
             String _          -> (t,ln0,xs0)
             Hash _            -> (t,ln0,xs0)
+            Punct '#'         -> 
             Punct '('         -> let (exps,ln1,xs1) = readDelimiter ')'
                                                                     (readExpr infs Nothing [] (Left 0))
                                                                     ln0

@@ -1,0 +1,3 @@
+{Entry} search (String reg, Directory dir)
+  Regex reg = regex reg
+  

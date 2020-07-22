@@ -1,0 +1,25 @@
+synonym Name = String
+synonym Type = String
+
+synonym Directory = Mutable (Set (Map (Name,Entry)))
+
+struct File
+    Type  ftype
+    [Int] contents
+
+synonym Program = Void <- [Int]
+
+union Entry = File, Directory
+
+synonym Path = {Name}
+
+Directory root = void
+Directory wd = void
+Mutable (Set (Map (Type,{(Name,Void <- [Int])}))) progs = void
+
+Void main
+  print " >> "
+  String s = getLine
+  if s == "quit" -> void
+     else -> eval << read s
+             main

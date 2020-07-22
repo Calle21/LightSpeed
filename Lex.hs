@@ -25,7 +25,6 @@ lex' (filename, inp) = SetFileName filename : lexLines 1 1 inp
                                                    | floatSyntax t   = Type (LU "Float") $ Int $ unsafeCoerce (read t :: Float)
                                                    | capSyntax t     = Cap t
                                                    | allCapSyntax t  = AllCap t
-                                                   | hashSyntax t    = Hash $ read (tail t)
                                                    | charSyntax t    = Type (LU "Char") (Int $ getChar' $ tail t)
                                                    | loopSyntax t    = Loop $ tail t
                                                    | keywordSyntax t = Keyword t
@@ -61,14 +60,14 @@ char :: Char -> Bool
 char c | alpha c              = True
        | c >= '0' && c <= '9' = True
        | opChar c             = True
-       | c `elem` "@`#"       = True
+       | c `elem` "@`"       = True
        | otherwise            = False
 
 opChar :: Char -> Bool
 opChar c = c `elem` "!$%&/=+?\\^~'*-_:"
 
 punctChar :: Char -> Bool
-punctChar c = c `elem` "()[]{}.;"
+punctChar c = c `elem` "()[]{}.;#"
 
  -- Syntax
 
@@ -77,9 +76,6 @@ loopSyntax s = s =~ "^@[a-z0-9_][a-zA-Z0-9_]*$" && any alpha s
 
 nameSyntax :: String -> Bool
 nameSyntax s = s =~ "^[a-z0-9_][a-zA-Z0-9_]*$" && any alpha s
-
-hashSyntax :: String -> Bool
-hashSyntax s = s =~ "^#[0-9]+$"
 
 opSyntax :: String -> Bool
 opSyntax s = not (null s) && all opChar s
@@ -109,6 +105,7 @@ charSyntax s = s =~ "^'(.|nul|tab|newline|space|([0-9]{3}))$"
 
 keywordSyntax s = s `elem` ["|"
                           , ">>"
+                          , "<<"
                           , "->"
                           , "<-"
                           , "_"

@@ -64,11 +64,11 @@ Bool all (Bool <- E fn, {E} ls)
     Cons E -> if fn ls.car -> ls.car : filter (fn, ls.cdr)
                  true -> filter (fn, ls.cdr)
 
-{E} find (E elt, {E} ls)
+(E | Void) find (I id, {E} ls, I <- E fn)
   tcase ls
-    Void   -> void
-    Cons E -> if elt == ls.car -> ls
-                 true -> find (elt, ls.cdr)
+    Void -> void
+    Cons E -> if id == fn ls.car -> ls.car
+                 else -> find (id, ls.cdr, fn)
 
 A foldl (A <- (A,B) fn, A start, [B] ls)
   tacse ls
@@ -97,10 +97,29 @@ E head ({E} ls)
     Cons E -> ls.car
 
 Bool (E elt) `in` ({E} ls)
+  member (elt,ls,id)
+
+Bool member (A id, {E} ls, A <- E fn)
   tcase ls
-    Void   -> false
-    Cons E -> if elt == ls.car -> true
-                 true -> elt `in` ls.cdr
+    Void -> false
+    Cons E -> if id == fn ls.car -> true
+                 else -> member (id,ls.cdr,fn)
+
+
+{E} intersect ({{E}} lss}
+  intersectOn (id,lss)
+
+{E} intersectOn (A <- E fn, {{E}} lss)
+  if length lss == 1 -> head lss
+     else -> @loop ({{E}} lss0 = lss)
+               tcase lss0
+                 Void -> void
+                 Cons E -> @build ({E} ls = lss0.car)
+                             tcase ls
+                               Void -> loop lss0.cdr
+                               Cons E -> E elt = ls.car
+                                         if all (member (fn elt,#1,fn),lss) -> elt : build ls.cdr
+                                            else -> build ls.cdr
 
 Cons E last ({E} ls)
   tcase ls
@@ -188,13 +207,17 @@ Bool ({E} a) `prefix` ({E} b)
                          over  = filter (ls, #1 > mid)
                          quicksort under `nconcat2` {mid} `nconcat2` quicksort over
 
+{E} repeat (E elt, Int n)
+  if n <= 0 -> void
+     else -> elt : repeat (elt, n - 1)
+
 {E} reverse ({E} ls)
   foldl (#2 : #1, {}, #1)
 
 {E} rplaca ({E} ls, E obj)
   tcase ls
     Cons E -> obj : ls.cdr
-    Void -> error "Empty list)
+    Void -> error "Empty list"
 
 {E} rplacd ({E} ls0, {E} ls1)
   tcase ls0
@@ -222,6 +245,24 @@ Bool ({E} a) `prefix` ({E} b)
     Void   -> void
     Cons E -> if fn ls.car -> ls.car : takeWhile (fn, ls.cdr)
                  true -> void
+
+{E} unite ({{E}} lss)
+  uniteOn (id,lss)
+
+{E} uniteOn (A <- E fn, {{E}} lss)
+  tcase lss
+    Void -> {}
+    Cons E -> if length lss == 1 -> lss.car
+                 else -> @loop ({E} acc = {}
+                                {E} ls = lss.car
+                                {{E}} lss = lss.cdr)
+                           tcase ls
+                             Void -> tcase lss
+                                       Void -> acc
+                                       Cons E -> loop (acc,lss.car,lss.cdr
+                             Cons E -> if E elt = ls.car
+                                          member (fn elt,acc,fn) -> loop (acc,ls.cdr,lss)
+                                          else -> loop (elt : acc,ls.cdr,lss)
 
 ({A},{B}) unzip ({(A,B)} ab)
   @loop ({A} a = {}

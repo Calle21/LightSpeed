@@ -1,27 +1,10 @@
 union Set E = SetNode E, Void
 
 struct SetNode E
-    SetNode E left
-    E         leaf
-    SetNode E right
-
-struct Map (K,E)
-    K key
-    E elem
-
-Bool (Map (K,E) m0) > (Map (K,E) m1)
-  m0.key > m1.key
-
-Bool (Map (K,E) m0) < (Map (K,E) m1)
-  m0.key < m1.key
-
-(E | Void) lookup (K key, Set (Map (K,E)) tree)
-  tcase tree
-    Void -> void
-    SetNode (Map (K,E))
-      Map (K,E) map = tree.leaf
+    Mutable (SetNode E) left
+    E                   leaf
+    Mutable (SetNode E) right
       
-
 Bool member (E elt, Set E tree)
   tcase tree
     Void -> false
@@ -67,3 +50,21 @@ Int size (Set E tree)
   tcase tree
     Void -> 0
     SetNode E -> size tree.left + 1 + size tree.right
+
+ -- Maps
+
+struct Map (K,E)
+    K key
+    E elem
+
+Bool (Map (K,E) m0) > (Map (K,E) m1)
+  m0.key > m1.key
+
+Bool (Map (K,E) m0) < (Map (K,E) m1)
+  m0.key < m1.key
+
+(E | Void) lookup (K key, Set (Map (K,E)) tree)
+  tcase tree
+    Void -> void
+    SetNode (Map (K,E)) -> Map (K,E) map = tree.leaf
+                           if 

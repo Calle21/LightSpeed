@@ -1,0 +1,10 @@
+Nova does not support pointers like some other languages. Instead, the Reference struct is used. It is defined like this
+
+struct Reference A
+    A var
+
+This allows the value to be passed around and mutated, if it is mutable (which it probably is)
+
+To reference the value the reference points to, use dots
+
+r.var

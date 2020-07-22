@@ -1,0 +1,5 @@
+Int fact (Int n)                           -- 'fact' is a function that takes one argument. 'n'
+  if n < 0 -> error "Negative integer"     -- If 'n' is negative, cause an error
+     else -> @loop (Int n = n)             -- Otherwise begin a loop that takes one argument
+               if n == 0 -> 1              -- If 'n' is 0, equals one
+                  else -> n * loop (n + 1) -- Otherwise 'n' times the loop with 'n' decremented with one

@@ -1,5 +1,3 @@
-use error from Calc
-
 Void main
   print " >> "
   String s = getLine

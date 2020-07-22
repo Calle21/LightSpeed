@@ -33,3 +33,13 @@ Doubly E insertBefore (Doubly E d, E elt)
                   Void -> d0
                   DoublyNode E -> before.after := d0
                                   d0
+
+Void remove (Doubly E d)
+  Doubly E before = d.before
+  Doubly E after = d.after
+  tcase before
+    Void -> void
+    DoublyNode E -> before.after := after
+  tcase after
+    Void -> void
+    DoublyNode E -> after.before := before

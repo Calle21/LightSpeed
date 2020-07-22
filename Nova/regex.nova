@@ -1,0 +1,57 @@
+locals += Regex, RegexTok, Either, Repeat, Begin, End
+
+union RegexTok = Char, Bool <- Char, Either, Repeat, Begin, End
+
+synonym Regex = {RegexTok}
+
+struct Repeat
+    Int        minNum
+    Int | Void maxNum
+    Regex      regex
+
+type Either = {RegexTok}
+
+type Begin = Void
+
+type End = Void
+
+Regex regex (String t)
+  
+Bool (String s) == (Regex r)
+  {Int} matches = regex (0,s,r)
+  tcase matches
+    Void -> false
+    Cons Int -> true
+
+{Int} regex (Int i, String s, Regex r)
+  tcase r
+    Void -> {i}
+    Cons RegexTok -> tcase r.car
+                       Char -> if it == s ! i -> regex (i + 1,s, r.cdr)
+                                  else -> {}
+                       Bool <- Char -> if it (s ! i) -> regex (i + 1,s, r.cdr)
+                                          else -> {}
+                       Either -> @either (Regex toks = it as Regex)
+                                   tcase toks
+                                     Void -> {}
+                                     Cons RegexTok -> {Int} matches = regex (i, toks.car : r.cdr)
+                                                      matches `nconcat2` either toks.cdr
+                       Repeat -> @repeat (Int rep = it.minNum)
+                                   ...
+                       Begin -> 
+                       End ->
+
+Bool (String s) =~ (String t)
+  Int end0 = length s
+  Int end1 = length t
+  @main (Int i0 = 0
+         Int i1 = 0)
+    if i1 == end1 -> true
+       else -> Char c1 = t ! i1
+               if c1 == '^ -> 
+                  c1 == '$ -> 
+                  else -> 
+
+Bool regexRepeater (Int place
+                    (Int | Void) minNum
+                    (Int | Void) maxNum

@@ -1,5 +1,3 @@
-export Void, void, something, null
-
 synonym Void = ()
 
 Void void = void
@@ -7,9 +5,17 @@ Void void = void
 Bool something (A a)
   tcase a
     Void -> false
-  true
+    _ -> true
 
 Bool null (A a)
   tcase a
     Void -> true
-  false
+    _ -> false
+
+Void void (A _) = void
+Void void (A _,B _) = void
+Void void (A _,B _,C _) = void
+Void void (A _,B _,C _,D _) = void
+Void void (A _,B _,C _,D _,E _) = void
+Void void (A _,B _,C _,D _,E _,F _) = void
+Void void (A _,B _,C _,D _,E _,F _,G _) = void

@@ -23,7 +23,7 @@ Array 7 Char
 
 [Char] = Array 1 Char
 
-The function 'length' will return the number of indices in any array, and the function 'dimensions' will return the dimensions of an array as an array.
+The function 'length' will return the number of indices in any array, and the function 'dimensions' will return the dimensions of an array as a tuple.
 
 Struct
 A struct is really a tuple, but with named fields. Structs can also inherit traits from classes, which tuples do not.

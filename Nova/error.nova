@@ -1,0 +1,12 @@
+union Maybe A = A, Failure
+
+type Failure = String
+
+Failure error (String s) = s as Failure
+
+Void trace (String s)
+  pure print s
+
+A trace (String s, A a)
+  pure print s
+  a

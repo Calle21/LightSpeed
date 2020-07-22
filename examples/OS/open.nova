@@ -1,0 +1,32 @@
+Void open (File f)
+  Void | Entry progd = find ({"programs",ftype},root)
+    tcase progd
+      Void -> error "No programs installed to open that filetype"
+      Directory -> case length progd
+                     0 -> error "Empty directory in /programs"
+                     1 -> 
+      File -> error "Found a file in /programs"
+
+Void open (Directory d)
+  wd := d
+
+Void open (Program _)
+  error "Cannot open programs"
+
+Void open (Name name)
+  open (name,wd)
+
+Void open (Name name, Directory d)
+  Void | Entry res = find (name,d)
+  tcase res
+    Void -> error "No such file or directory"
+    Entry -> open res
+
+Void open (Path path)
+  open (path,wd)
+
+Void open (Path path, Directory d)
+  (Void | Entry) res = find (path,d)
+  tcase res
+    Void -> error "No such file or directory"
+    Entry -> open res

@@ -1,0 +1,3 @@
+{Int} fibs = 1 : delay scanl (`+`, 1, fibs) -- Some scanl magic. The second argument to ':' must be delayed, otherwise it would never stop evaluating
+
+Int fibn (Int n) = fibs ! n -- Simply get the nth number from the fibs sequence

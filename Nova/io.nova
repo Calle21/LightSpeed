@@ -1,18 +1,15 @@
-Char getChar = ...
+Char getChar = getChar
 
-String getLine = ...
+String getLine = getLine
 
-Void print (Char c) = ...
+Void print (Char c) = print c
 
 Void print (Int i)
   print (show i)
 
 Void print (String s)
-  @loop (String s = s)
-    tcase s
-      Void   -> void
-      Cons E -> print s.car
-                loop s.cdr
+  each (c <- s)
+    print c
 
 Void printLn (A arg)
   print arg

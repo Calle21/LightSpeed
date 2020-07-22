@@ -1,5 +1,5 @@
 Int fact (Int n)
   n < 0 >> error "Negative integer"
   @loop (Int n = n)
-    n == 0 >> 1
-    n * loop (n + 1)
+    if n == 0 -> 1
+       else -> n * loop (n + 1)

@@ -1,0 +1,21 @@
+(Void | Entry) find (Name name)
+  find (name,wd)
+
+(Void | Entry) find (Name name, Directory d)
+  lookup (name,d)
+
+(Void | Entry) find (Path p)
+  find (p, wd)
+
+(Void | Entry) find (Path p, Directory d)
+  @loop (Directory d = d
+         Path p = p)
+    tcase p
+      Void -> d
+      Cons Name -> Void | Entry res = find (p.car,d)
+                   tcase res
+                     Void -> void
+                     (File | Program) -> tcase p.cdr
+                                           Void -> res
+                                           _ -> void
+                     Directory -> loop (res,p.cdr)

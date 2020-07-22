@@ -1,0 +1,92 @@
+Void main                                             -- This is a program that returns 'Void'
+  print " >> "                                        -- First we print " >> "
+  String s = getLine                                  -- Then we get a line into 's'
+  if s == "quit" -> void                              -- If the line is equal to "quit" we return 'void' (an empty tuple)
+     else -> {Tok} toks = lex s                       -- Otherwise we lex the string and put the result in 'toks'
+             if null toks -> main                     -- If no tokens were created we evaluate 'main' again
+                else -> printLn << eval << parse toks -- Otherwise we parse the toks, evaluate that and print the result with a newline after
+                        main                          -- Then we evaluate 'main' again
+
+union Tok = Int,Char -- This is what the lexer outputs. A 'Tok' is either an 'Int' or a 'Char'
+ 
+{Tok} lex (String s)                                             -- 'lex' returns a list of 'Tok' and takes a string
+  @loop (Int i = 0)                                              -- Begin a loop with one parameter. It starts off as zero
+    if i == length s -> void                                     -- If we're at the end of the string, return void (no more tokens)
+       else -> Char c = s ! i                                    -- Otherwise bind 'c' to the current character
+               if c == 'space -> loop (i + 1)                    -- If 'c' is a space, evaluate 'loop' with 'i' incremented one (skip over the space)
+                  c `in` ['+,'-,'*,'/,'(,')] -> c : loop (i + 1) -- If 'c' is a +, -, *, /, ( or ), then cons that character onto whatever 'loop' returns when applied to 'i' incremented
+                  digit c -> (Int num, Int i) = readint (s,i)    -- If 'c' is a digit (0 to 9), then call 'readint', which takes a string and an integer, reads an integer, and returns that integer read as well the index right after the integer
+                             num : loop i                        -- Cons 'num' onto 'loop' applied to 'i'
+                  else -> error "Unexpected character"           -- Unexpected character
+
+union Lang = Int, Call -- This is what the parser outputs. Can be interpreted by 'eval'
+
+struct Call   -- We define a struct named 'Call'
+    Lang arg1 -- The first field is of type 'Lang' and is named 'arg1'
+    Char op   -- The second field is of type 'Char' and is named 'op'
+    Lang arg2 -- The third field is of type 'Lang' and is named 'arg2'
+
+Int eval (Lang l)                             -- 'eval' returns and 'Int' and takes an argument of type 'Lang'
+  tcase l                                     -- tcase l
+    Int -> l                                  -- If an 'Int', return that 'Int'
+    Call -> case l.op                         -- If a 'Call', look what the 'op' field of the 'Call' is
+              '+ -> eval l.arg1 + eval l.arg2 -- If a +, then evaluate the first and second argument and plus them
+              '- -> eval l.arg1 - eval l.arg2 -- Same but subtract the arguments
+              '* -> eval l.arg1 * eval l.arg2 -- Same but multiplication
+              '/ -> eval l.arg1 / eval l.arg2 -- Same but division
+
+Lang parse ({Tok} ls)                               -- The parser takes a list of 'Tok' and returns 'Lang'
+  (Lang l,{Tok} ls) = parseExpr ls                  -- 'parseExpr' returns an expression parsed, as well as the remaining tokens after that expression
+  tcase ls                                          -- What is the type of the remaining tokens
+    Void -> l                                       -- If none ('void' is empty list) we return 'l'
+    Cons Tok -> error "Didn't expect closing paren" -- Otherwise there is an error. 'parseExpr' only stops parsing either when there are no more tokens, or when it encounters a closing paren
+
+(Lang,{Tok}) parseExpr ({Tok} ls)                                               -- 'parseExpr' returns '(Lang,{Tok})' and takes a '{Tok}'
+  (Lang a, {Tok} ls) = parseSub ls                                              -- First we parse a sub-expression
+  tcase ls                                                                      -- What's the type of the remaining tokens
+    Void -> (a,ls)                                                              -- If none, return what 'parseSub' returned
+    Cons Tok -> tcase ls.car                                                    -- If there are more tokens, what's the type of the first of them
+                  Char -> if it `in` ['+,'-,'*,'/] -> parse1op (a,tok,ls.cdr)   -- If a 'Char', see if 'it' ('it' is bound by 'tcase') is an operator (+, -, * or /). If so, call 'parse1op', which is used when we have an expression followed by an operator
+                             it == ') -> (a,ls)                                 -- If 'it' is a closing paren, then return what 'parseSub' returned
+                             else -> error "Expected operator or closing paren" -- Otherwise an error
+                  _ -> error "Expected operator or closing paren"               -- Error (_ matches anything)
+
+(Lang,{Tok}) parse1op (Lang a, Char op, {Tok} ls)                                                         -- 'parse1op' takes the previous expression, the operator and the remaining tokens, and returns a parsed expression (Lang) as well as the remaining tokens
+  (Lang b, {Tok} ls) = parseSub ls                                                                        -- Get the second expression with 'parseSub'
+  tcase ls                                                                                                -- Are there remaining tokens?
+    Cons Tok -> tcase ls.car                                                                              -- If so, what's the type of the first of them
+                  Char -> if it == ') -> (call (a,op,b),ls)                                               -- If a 'Char', see if it is a closing paren. If so, create a 'call' with the first and second expressions as arguments, and the operator as operator
+                             it `in` ['+,'-,'*,'/] -> case getWinner (op,it)                              -- If the 'Char' is an operator, see whether this operator or the previous one should bind tighter
+                                                        'l -> parse1op (call (a,op,b), it, ls.cdr)        -- l means left. So the first (left) operator won. Then we call 'parse1op' again with a call as the first expression, and the second operator as the first operator
+                                                        'r -> (Lang b, {Tok} ls) = parse1op (b,it,ls.cdr) -- r means right, so the second (right) operator won. Then we call 'parse1op' with the second expression as the first expression
+                                                              (call (a,op,b),ls)                          -- We take the result, and create a call to the first operator
+                             else -> error "Expected closing paren or operator"                           -- Error
+                  _ -> error "Expected closing paren or operator"                                         -- Error
+    _ -> (call (a,op,b),ls)                                                                               -- If no more tokens, create a call with the first and second expression and the operator
+
+Char getWinner (Char a, Char b)    -- Get the winner between two operators
+  if strength a < strength b -> 'r -- If 'b' has more strength, it wins
+     else -> 'l                    -- Otherwise 'a' wins
+
+Int strength (Char c)    -- Test the strength
+  if c `in` ['+,'-] -> 0 -- + and - are weak
+     c `in` ['*,'/] -> 1 -- * and / are strong
+
+(Lang,{Tok}) parseSub ({Tok} ls)                                                                           -- Parse a sub-expression. A sub-expression is either just an integer, or anything within parentheses
+  tcase ls                                                                                                 -- Are there tokens?
+    Cons Tok -> tcase ls.car                                                                               -- If so, what's the type of the first of them
+                  Int -> (it,ls.cdr)                                                                       -- If an 'Int', return it and the remaining tokens
+                  Char -> if it == '( -> (Lang a, {Tok} ls) = parseExpr ls.cdr                             -- If a 'Char', it ought to be an opening paren. If so, parse the entire expression after the opening paren
+                                         tcase ls                                                          -- Are there more tokens?
+                                           Cons Tok -> tcase ls.car                                        -- If so, what's the type of the first one?
+                                                         Char -> if it == ') -> (a,ls.cdr)                 -- If a 'Char, it ought to be a closing paren
+                                                                    else -> error "Expected closing paren" -- Error
+                                                         _ -> error "Expected closing paren"               -- Error
+                                           _ -> error "Expected closing paren"                             -- Error
+                             else -> error "Unexpected character"                                          -- Error
+    _ -> error "Expected expression"                                                                       -- Error
+
+Void error (String s) -- Our 'error' function
+  print "Error: "     -- First it prints "Error: "
+  printLn s           -- Then it prints the message followed by a newline
+  main                -- Then it calls 'main'

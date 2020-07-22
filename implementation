@@ -5,7 +5,7 @@ One element tuple and structs are raw values. Multi-element tuple and structs ar
 
 What this means is that a struct of a single element, say an Int, will not be allocated as a struct to be garbage collected, but rather allocated the same way an Int would be (Ints are not garbage collected on 64-bit machines, because they fit into a single word of memory)
 
-If a tuple or struct contains many fields onthe other hand, they will be represented as a pointer pointing to the chunk of memory holding the elements. So an array of pairs
+If a tuple or struct contains many fields on the other hand, they will be represented as a pointer pointing to the chunk of memory holding the elements. So an array of pairs
 
 [(A,B)]
 

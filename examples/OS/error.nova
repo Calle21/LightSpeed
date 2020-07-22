@@ -1,0 +1,3 @@
+Void error (String message)
+  print "Error: "
+  printLn message

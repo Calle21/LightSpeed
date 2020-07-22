@@ -1,0 +1,299 @@
+There are a number of keyword in Nova. Here I'll go through them in alphabetical order
+
+|
+This keyword is used when creating list comprehnsions.
+
+{x | x <- {2,4..}}
+
+You can read more about list comprehensions in 'theory/listComprehensions'
+
+>>
+This is a concatenation operator, implemented as a keyword. separating expressions with >> is equivalent to putting them one after another with the same indentation. So, >> creates sequences
+
+a >> b >> c
+
+is equivalent to
+
+a
+b
+c
+
+<<
+A parser macro. It says, get everything on the right, and apply it to whatever is on the left
+
+a << b
+
+is equivalent to
+
+a (b)
+
+This keyword can be used to eliminate parens
+
+->
+This keyword is used in clauses to separate conditional from expression
+
+<-
+This keyword is sometimes used in place of an equals sign
+
+_
+The underscore have several uses. It can be used as a variable name, to signify that the variable is not going to be used. And then you cannot use it.
+
+It is also used in macros, usually as the default "match everything"
+
+--
+Reserved to not confuse with one-line comments
+
+**
+reserved to not confuse with multi-line comments
+
+=
+Used in variable bindings and other places where pure assignment happens
+
+:= (?)
+Assignment
+
+as
+Is used to convert values between types of the same typeclass. It can also be used to cast a value into a compatible union. For example a 'Cons E' value into a 'List E' value, in order to get the right overload
+
+case
+A macro. That is, it is probably implemented as a macro that expands into a series of if statements. In either case, its' behaviour is as if it were a macro.
+
+case a
+  b -> c
+  d -> e
+  _ -> f
+
+would be equivalent to
+
+if a == b -> c
+   a == d -> e
+   else -> f
+
+class
+Type keyword to create classes. You can read more about it in 'theory/types'
+
+delay
+Used to create delayed values. 'delay a' returns 'a' as a delay. You can read more about it in 'theory/delays'
+
+destroy
+Same as 'modify' but will issue a destructive (!) update. Very unsafe, ONLY used to improve performance
+
+do (while)
+A C-style do-while loop is implemented in Nova.
+
+do (a) while b
+
+or
+
+do (
+  a
+  b
+  c) while d
+
+The expression within the parenthese will be executed at least once. That is, the test happens at the end of the body of code rather than at the beginning
+
+each
+A powerful macro
+
+each (a <- b
+      c <- d)
+  e
+
+Here, 'b' and 'd' must be sequences of some sort. That is, a type which has the '!' operator implemented (lists uses successive 'cdr's). 'a' and 'c' will, withing 'e', be bound, one step at a time, to every element within the sequences. The loop ends when the shortest sequence runs out, and returns 'void'
+
+enum
+Type keyword to create enumerations. You can read more about it in 'theory/types'
+
+for
+A macro
+
+for (i 0 9)
+  printLn (arr ! i)
+
+would print the indices zero to nine of the 'arr' sequence. It expands like this
+
+@for (Int i = 0)
+  if i > 9 -> void
+     else -> printLn (arr ! i)
+             for (i + 1)
+
+An implementation does not have to implement an "macro" as a macro (something that expands), but it probably will. The 'for' macro doesn't have to expand the way demonstrated here but, it probably will
+
+from
+Used to get identifiers from a specific library
+
+(a from B) (c,d)
+
+would apply '(c,d)' to 'a' as it appears in library 'B'
+
+if
+Used to create "if, then, else" expressions. Likely implemented as a macro
+
+if a -> b
+   c -> d
+   else -> e
+
+'else' is a boolean value set to 'true'. If 'a' is 'true', then 'b' is evaluated. Otherwise the next clause is tested. The conditionals must be boolean values and all the then-expressions must be of the same type.
+
+infixl
+Used to indicate a left-associative operator
+
+infixr
+Used to indicate a right-associative operator
+
+lambda
+Used to create anonymous functions
+
+lambda Int (Int a) -> a + 1
+
+would evaluate to a function that increments an integer with one
+
+locals
+Used to specify some identifiers that will not be exported by a library
+
+locals += a,b,c,D,E
+
+A '+=' sign is used for mnemonic purposes only. You may use the 'locals' keyword in several files, and every time more locals is added to the collection of locals. If collisions occur, that is, an identifier already named a local is named again, well, no error occurs, because of overloading. You may want, for clarity reasons, to name all the locals in all your source files, whatever.
+
+match
+A very powerful macro, and difficult to implement (I think).
+
+match a
+  (x0 : x1 : xs) -> ...
+  [a,b,c] -> ...
+  _ -> ...
+
+Here, if 'a' is a list of at least length 2, then the first clause wil match. If 'a' is an array, exactly three in length, well, then the second clause will match. Otherwise the third clause matches. Here, the underscore is used to match anything.
+
+'x0', 'x1', 'xs', 'a', 'b' and 'c' will furthermore be bound to the elements at the indicated places. So 'c' would be the third element of the array, 'x0' would be the first element in the list and 'xs' would be the third cdr of the list.
+
+match a
+  (Int x : xs) ->
+  (Char c : xs) ->
+
+Matches can also use type annotations like this. 
+
+modify
+Modifies arrays and structs. Will return a copy of the original structure, with the indicated changes made
+
+modify a
+  b = c
+  d = e
+
+If a is a struct: will change the 'b' field of 'a' to 'c' and the 'd' field of 'a' to 'e'
+If a is an array: will changes indice 'b' to 'c', and indice 'd' to 'e'
+
+When modifying arrays, ints can be used directly
+
+modify arr
+  4 = a
+  8 = b
+
+A single line version is also possible (?)
+
+modify a (b = c, d = e)
+
+parallel
+Used for concurrent programming
+
+parallel
+  a <- b
+  c <- d
+
+binds 'a' to 'b', 'c' to 'd', and 'b' and 'd' is evaluated in parallel if possible
+
+pure
+Forces the compiler to treat an action as a pure value. Unsafe. You should really know what you're doing if you're using this keyword.
+
+range
+A macro
+
+range a
+  (0,_) -> b
+  (_,0) -> c
+
+Here, if 'a' is zero or bigger, 'b' will be evaluated. Otherwise 'c' is evaluated
+
+range a
+  (0,9) -> b
+  _ -> c
+
+The underscore can also match everything. The ranges are inclusive
+
+static
+Used to create static variables. Static variables are always mutable and retain their values in between calls. There can be no global static variable.
+
+Int getCount
+  static Int c = 0
+  Int ret = c
+  c := c + 1
+  ret
+
+That's an implementation of a simple counter. A function that returns zero the first time it is called. One the next time, two the next etc
+
+struct
+Used to define structs. You can read more about it in 'theory/types'
+
+switch
+Like an if-then-else statement but with many possible clauses. Not just two. An integer is used instead of a bool
+
+switch a
+  0 -> b
+  1 -> c
+  2 -> d
+  3 -> e
+
+The conditional clauses must start at zero, and increase one step at a time. Access to any clause will be as fast as accessing any other clause. Probabaly the then-expressions are stored in an array.
+
+'a' need not be an Int. But it has to be in the 'Int' typeclass. Enumaration or in the 'Int' typeclass.
+
+switch abool
+  false -> a
+  true -> b
+
+is perfectly valid code. The testing-expression (abool just above) and the conditional expressions (false,true) must be of the same type.
+
+synonym
+Used to create synonyms. It has to do with types and you can read more about it in 'theory/types'
+
+tcase
+Usedt to narrow down the type of a value. Used with unions (?)
+
+tcase U0
+  T0 -> a
+  T1 -> b
+  T2 -> c
+
+Here, if 'U0' is a union of 'T0', 'T1', 'T2' and possibly more types, if it is 'T0' (tested at runtime), 'a' will evaluate. If it is 'T1', 'b'. 'T2', 'c'.
+
+Sub-unions can be used as conditionals. If 'U1' is a sub-union of of 'U0', you could write
+
+tcase U0
+  T0 -> a
+  U1 -> b
+
+A sub-union being a union that is either identical or containing a sub-set of the types of the, ah, super-union. Identical unions may be out-lawed though
+
+the
+Used to help the compiler in overloading situations. Say there were two 'num'. One was a 'String' and the other was an 'Int'. The you have a function that you call that is overloaded for both 'String' and 'Int', and you want to give a 'num' to it. What do you do? The answer is, that you use the 'the' keyword.
+
+Int num = 55
+String num = "Two"
+
+print (num the Int)
+
+type
+Used to create new types. You can read more about it in 'theory/types'
+
+union
+Used to create types. You can read more about it in 'theory/types'
+
+use
+Used to indicate library imports. Can be used anywhere. Colliding imports issues an error
+
+use OpenGL, GLUT
+
+to use 'OpenGL' and 'GLUT' libraries
+
+while
+A C-style while-loop. Probably implemented as a macro

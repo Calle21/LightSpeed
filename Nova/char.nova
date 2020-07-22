@@ -5,35 +5,41 @@ type Char = Int
 Bool alpha (Char c)
   lower c || upper c
 
+Bool alphaNumeric (Char c)
+  alpha c || digit c
+
 Int charToDigit (Char c)
   i = (c as Int) - ('0 as Int)
   range i
     (0,9) -> i
-    (_,_) -> error "Not a digit"
+    _ -> error "Not a digit"
+
+Int diff = int 'a - int 'A
 
 Bool digit (Char c)
   range c
     ('0,'9) -> true
-    (_,_)   -> false
+    _ -> false
 
 Bool lower (Char c)
   range c
     ('a,'z) -> true
-    (_,_)   -> false
-
-Int diff = int 'a - int 'A
+    _ -> false
 
 Char toLower (Char c)
   range c
     ('A,'Z) -> char (int c + diff)
-    (_,_)   -> c
+    _ -> c
 
 Char toUpper (Char c)
   range c
     ('a,'z) -> char (int c - diff)
-    (_,_)   -> c
+    _ -> c
 
 Bool upper (Char c)
   range c
     ('A,'Z) -> true
-    (_,_)   -> false
+    _ -> false
+
+Bool wordChar (Char c)
+  alphaNumeric c || c == '_
