@@ -41,10 +41,10 @@ Bool all (Bool <- E fn, {E} ls)
 {E} circle ({E} ls)
   ncircle << foldr (`:`, {}, ls)
 
-{E} concat ({{E}} lss)
+{E} conc ({{E}} lss)
   tcase lss
     Void   -> void
-    Cons E -> lss.car ++ concat lss.cdr
+    Cons E -> lss.car ++ conc lss.cdr
 
 {E} drop (Int n, {E} ls)
   if n == 0 -> ls
@@ -140,6 +140,8 @@ Int length ({E} ls)
     Void   -> void
     Cons E -> fn ls.car : map (fn, ls.cdr)
 
+{B} mapConc = nconc `compose` map
+
 {B} map2 (B <- (A,A) fn, {A} ls)
   match ls
     (a:b:_) -> (a `fn` b) : map2 (fn,ls.cdr)
@@ -162,12 +164,12 @@ Int length ({E} ls)
                 cdr = ls
               ls
 
-{E} nconcat ({{E}} lss)
+{E} nconc ({{E}} lss)
   tcase lss
     Void -> void
-    Cons E -> lss.car `nconcat2` nconcat lss.cdr
+    Cons E -> lss.car `nconc2` nconc lss.cdr
 
-{E} nconcat2 ({E} a, {E} b)
+{E} nconc2 ({E} a, {E} b)
   tcase a
     Void -> void
     Cons E -> destroy last a
@@ -185,9 +187,17 @@ Int length ({E} ls)
                                     cdr = prec
                                   nxt)
 
+{E} nub ({E} ls)
+  @loop ({E} acc = {}
+         {E} ls = ls)
+    tcase ls
+      Void -> nreverse acc
+      Cons E -> if ls.car `in` acc -> loop (acc, ls.cdr)
+                   else -> loop (ls.car : acc, ls.cdr)
+
 ({E}, {E}) partition (Bool <- E fn, {E} ls)
   (filter (fn, ls)
-   filter (not `compose` fn, ls))
+   filter (not . fn, ls))
 
 Bool ({E} a) `prefix` ({E} b)
   @loop ({E} a0 = a, {E} b0 = b)
@@ -205,7 +215,7 @@ Bool ({E} a) `prefix` ({E} b)
                  else -> mid = ls.car
                          under = filter (ls, #1 < mid)
                          over  = filter (ls, #1 > mid)
-                         quicksort under `nconcat2` {mid} `nconcat2` quicksort over
+                         quicksort under `nconc2` {mid} `nconc2` quicksort over
 
 {E} repeat (E elt, Int n)
   if n <= 0 -> void

@@ -7,22 +7,22 @@ if exists ("b:current_syntax")
         finish
 endif
 
-syn match cap '[A-Z][a-zA-Z0-9]*'
+syn match operator '[!"@#$%&/=?+\\^~*'-]\+'
+syn match operator '[:.;<>|]\+'
+syn match operator '`[a-zA-Z0-9]*`'
 syn match loop '@'
 syn match loop '@[a-z0-9][a-zA-Z0-9]*'
-syn match operator '[!$%&/=?+\\^~*-]\+'
-syn match operator '[:<>|]\+'
-syn match operator '`[a-zA-Z0-9]*`'
-syn match name '[a-z0-9_][a-zA-Z0-9_]*'
+syn match name '[0-9]*[a-z][a-zA-Z0-9]*\(\.[0-9]*[a-z][a-zA-Z0-9]*\)*'
 syn match name '`[!$%&/=?+\\^~*-]\+`'
 syn match name '`[:<>|]\+`'
-syn match name '\*[a-z0-9_][a-zA-Z0-9_]*'
-syn match name '\*[a-z0-9_][a-zA-Z0-9_]*\*'
+syn match name '\*[0-9]*[a-z][a-zA-Z0-9]*\*'
 syn match num '-\?[0-9]\+\>'
 syn match num '-\?[0-9]\+\.[0-9]\+'
+syn match cap '[A-Z][a-zA-Z0-9]*'
+syn match cap '[0-9]\+[A-Z][a-zA-Z0-9]*'
 syn region string start='"' end='"'
 syn match comment '--.*$'
-syn match char '\'\(nul\|space\|newline\|tab\|.\)'
+syn match char '\\\(nul\|space\|newline\|tab\|.\)'
 syn keyword keywords as case class delay destroy do each enum for from if infixl infixr lambda let locals match modify parallel pure range seq static struct switch synonym tcase the type union use while
 syn region comment start='\*\*' end='\*\*'
 

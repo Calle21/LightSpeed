@@ -33,7 +33,7 @@ Int dimensions ([E] arr) = dimensions arr
 
 [E] emptyArray = pure junkArray 0
 
-[E] extract (Bool <- E fn,[E] arr, Int start)
+([E],Int) extract (Bool <- E fn,[E] arr, Int start)
   Int len = @loop (Int i = start)
               if fn << arr ! i -> loop (i + 1)
                  else -> i - start
@@ -41,7 +41,7 @@ Int dimensions ([E] arr) = dimensions arr
   for (i 0 (len - 1))
     destroy ret
       i = arr ! start + i
-  ret
+  (ret,start + len)
 
 [E] fromList ({E} ls)
   Int len = length ls
@@ -100,7 +100,7 @@ struct Pool OBJ
     [Mutable OBJ] arr
     Mutable Int   vacant
 
-Pool OBJ makePool (Int size, E <- () builder)
+Pool OBJ makePool (Int size, OBJ <- () builder)
   pool
     (array (size,builder)
      size)

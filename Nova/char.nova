@@ -18,27 +18,27 @@ Int diff = int 'a - int 'A
 
 Bool digit (Char c)
   range c
-    ('0,'9) -> true
+    (\0,\9) -> true
     _ -> false
 
 Bool lower (Char c)
   range c
-    ('a,'z) -> true
+    (\a,\z) -> true
     _ -> false
 
 Char toLower (Char c)
   range c
-    ('A,'Z) -> char (int c + diff)
+    (\A,\Z) -> char (int c + diff)
     _ -> c
 
 Char toUpper (Char c)
   range c
-    ('a,'z) -> char (int c - diff)
+    (\a,\z) -> char (int c - diff)
     _ -> c
 
 Bool upper (Char c)
   range c
-    ('A,'Z) -> true
+    (\A,\Z) -> true
     _ -> false
 
 Bool wordChar (Char c)

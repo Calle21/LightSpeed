@@ -14,12 +14,13 @@ data Library = Library {libNm    :: String
                        ,libBinds :: [(String,Token)]}
              deriving Show
 
-data Token = Access String Token
+data Token = Access [String]
            | AllCap String
            | Array [Int] [Token]
            | AR Int Token
            | As String Token
            | Cap String
+           | CPat [String]
            | Destroy Token [(Token,Token)]
            | DR
            | EOF
@@ -30,16 +31,18 @@ data Token = Access String Token
            | Hash Int
            | If Token Token Token
            | IN
-           | Int Int
+           | Int Int64
            | Keyword String
            | Let [(Token,String,Token)] Token
-           | LU String Token
+           | Loop String
            | LoopParam Token String Token
            | Modifier Token Token
            | Modify Token [(Token,Token)]
            | Name String
+           | NM String [Token]
            | Op String
            | Param Token String
+           | Part Int
            | PR [String] Token
            | Punct Char
            | Pure Token

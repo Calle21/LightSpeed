@@ -1,0 +1,1 @@
+Three dots (...) in Nova means that something has not yet been written. It will typecheck as anything and compile but if ... is executed at runtime it will cause an error. It is like Haskell's 'undefined'

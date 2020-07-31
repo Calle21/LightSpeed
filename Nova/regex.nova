@@ -1,4 +1,4 @@
-locals += Regex, RegexTok, Either, Repeat, Begin, End
+locals += RegexTok, Either, Repeat, Begin, End, regexRepeat
 
 union RegexTok = Char, Bool <- Char, Either, Repeat, Begin, End
 
@@ -9,49 +9,65 @@ struct Repeat
     Int | Void maxNum
     Regex      regex
 
-type Either = {RegexTok}
+type Either = Regex
 
 type Begin = Void
 
 type End = Void
 
+type Word = Void
+
+type NotWord = Void
+
 Regex regex (String t)
-  
+  regexParse ({}, t, 0)
+
+Regex regexParse (Regex prev, String t, Int i)
+  if i == length t -> nreverse prev
+     else -> 
+
 Bool (String s) == (Regex r)
-  {Int} matches = regex (0,s,r)
+  {(Int,Int)} matches = regexSearch (r,s,0)
   tcase matches
     Void -> false
     Cons Int -> true
 
-{Int} regex (Int i, String s, Regex r)
+{(Int,Int)} regexSearch (Regex r, String s, Int i)
+  if i > s.length -> {}
+     else -> {Int} endIndexes = nub << regexSearchOne (r,s,i)
+             map ((i,#1), endIndexes) `nconc2` delay regexSearch (r,s,i + 1)
+
+{Int} regexSearchOne (Regex r, String s, Int i)
   tcase r
     Void -> {i}
     Cons RegexTok -> tcase r.car
-                       Char -> if it == s ! i -> regex (i + 1,s, r.cdr)
+                       Char -> if it == s ! i -> regexSearchOne (r.cdr,s,i + 1)
                                   else -> {}
-                       Bool <- Char -> if it (s ! i) -> regex (i + 1,s, r.cdr)
+                       Bool <- Char -> if it (s ! i) -> regexSearchOne (r.cdr,s,i + 1)
                                           else -> {}
                        Either -> @either (Regex toks = it as Regex)
                                    tcase toks
                                      Void -> {}
-                                     Cons RegexTok -> {Int} matches = regex (i, toks.car : r.cdr)
-                                                      matches `nconcat2` either toks.cdr
-                       Repeat -> @repeat (Int rep = it.minNum)
-                                   ...
+                                     Cons RegexTok -> {Int} matches = regexSearchOne (i, toks.car : r.cdr)
+                                                      nub << matches `nconc2` either toks.cdr
+                       Repeat -> {Int} matches = @repeat (Int rep = it.minNum
+                                                          {Int} matches = regexRepeat (it.regex,s,i,it.minNum)
+                                                   if null matches || repOut (rep,it.maxnum) -> matches
+                                                      else -> matches `nconc2` repeat (rep + 1
+                                                                                       mapConc (regexSearchOne (it.regex,s,#1), matches))
+                                 nub << mapConc (regexSearchOne (r.cdr,s,#1),matches)
                        Begin -> 
                        End ->
+                       Word ->
+                       NotWord ->
 
-Bool (String s) =~ (String t)
-  Int end0 = length s
-  Int end1 = length t
-  @main (Int i0 = 0
-         Int i1 = 0)
-    if i1 == end1 -> true
-       else -> Char c1 = t ! i1
-               if c1 == '^ -> 
-                  c1 == '$ -> 
-                  else -> 
+Bool repOut (Int rep, Int | Void maxNum)
+  tcase maxNum
+    Void -> false
+    Int -> rep == maxNum
 
-Bool regexRepeater (Int place
-                    (Int | Void) minNum
-                    (Int | Void) maxNum
+{Int} regexRepeat (Regex r, String s, Int i, Int rep)
+  if rep == 0 -> {i}
+     else -> {Int} matches = regexSearchOne (r, s, i)
+             if i == 1 -> matches
+                else -> mapConc (regexRepeat (#1,s,r,rep - 1), matches)

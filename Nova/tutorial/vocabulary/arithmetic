@@ -1,0 +1,51 @@
+Types:
+type Float = Int
+
+Functions:
+Int (Int a) + (Int b)
+
+Adds a and b
+
+Int (Int a) - (Int b)
+
+Subtracts b from a
+
+Int (Int a) * (Int b)
+
+Multiplies a and b
+
+Int (Int a) / (Int b)
+
+Divides a with b
+
+Float (Float a) + (Float b)
+
+Adds a and b
+
+Float (Float a) - (Flaot b)
+
+Subtracts b from a
+
+Float (Float a) * (Float b)
+
+Multiplies a and b
+
+Float (Float a) / (Float b)
+
+Divides a with b
+
+Int (Int b) ^ (Int e)
+
+Exponentiation of base b with exponent e. Causes an error if e is negative
+
+Float (Float b) ^ (Int e)
+
+Exponentiation of base b with exponent e
+
+Int abs (Int i)
+
+Absolute of i
+
+Int fact (Int n)
+
+Factorial of n. Causes an error if n is negative

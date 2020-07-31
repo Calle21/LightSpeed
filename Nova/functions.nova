@@ -1,14 +1,12 @@
-export |||, &&&, <<, id
-
-Bool <- A (Bool <- A fn0) ||| (Bool <- A fn1)
+Bool <- A (Bool <- A fn0) || (Bool <- A fn1)
   lambda Bool <- A (A arg)
-    fn0 arg || fn1 arg
+    fn0 arg | fn1 arg
 
-Bool <- A (Bool <- A fn0) &&& (Bool <- A fn1)
+Bool <- A (Bool <- A fn0) && (Bool <- A fn1)
   lambda Bool <- A (A arg)
-    fn0 arg && fn1 arg
+    fn0 arg & fn1 arg
 
-C <- A (C <- B fn1) << (B <- A fn0)
+C <- A (C <- B fn1) . (B <- A fn0)
   lambda C (A arg) = fn1 (fn0 arg)
 
 A id (A a) = a

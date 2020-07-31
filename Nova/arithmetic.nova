@@ -13,26 +13,26 @@ Float (Float a) / (Float b) = a / b
 Int (Int b) ^ (Int e)
   if e < 0  -> error "Negative exponent"
      e == 0 -> 1
-     true -> @loop (Int e = e) (Int res = b)
+     else -> @loop (Int e = e) (Int res = b)
                if e == 1 -> res
                   true -> loop (e - 1, res * b)
 
 Float (Float b) ^ (Int e)
   if e == 0 -> 1
-     true -> neg = if e < 0 -> true
+     else -> neg = if e < 0 -> true
                       true -> false
              e = abs e
              @loop (Float res = b, Int e = e)
                if e == 1 -> if neg -> 1.0 / res
                                true -> res
-                  true -> loop (res * b, e - 1)
+                  else -> loop (res * b, e - 1)
 
 Int abs (Int i)
   if i < 0 -> complement (i + 1)
-     true -> i
+     else -> i
 
 Int fact (Int n)
   if n < 0 -> error "Factorial of negative integer"
-     true -> @loop (Int n = n)
+     else -> @loop (Int n = n)
                if n == 0 -> 1
                   true -> n * loop (n - 1)

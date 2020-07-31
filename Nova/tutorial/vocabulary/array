@@ -1,0 +1,105 @@
+Functions:
+E ([E] arr) ! (Int i)
+
+Returns the ith indice of arr
+
+[E] array (Int len, E start)
+
+Returns an array of length len, with elements set to start
+
+[E] array (Int len, E <- () build)
+
+Returns an array of length len with elements set to the result of evaluating "build ()"
+
+(Int | Void) binsearch (E elem, [E] arr)
+
+Binary search for elem in a (hopefully) sorted array. Returns void if not found, otherwise the index of where it was found
+
+Int dimensions ([E] arr)
+
+Returns the length of a one-dimensional array
+
+(Int,Int) dimensions (Array 2 E arr)
+
+Returns the dimensions of a two-dimensional array
+
+(Int,Int,Int) dimensions (Array 3 E arr)
+
+Returns the dimensions of a three-dimensional array
+
+(Int,Int,Int,Int) dimensions (Array 4 E arr)
+
+Returns the dimensions of a four-dimensional array
+
+(Int,Int,Int,Int,Int) dimensions (Array 5 E arr)
+
+Returns the dimensions of a five-dimensional array
+
+(Int,Int,Int,Int,Int,Int) dimensions (Array 6 E arr)
+
+Returns the dimensions of a six-dimensional array
+
+(Int,Int,Int,Int,Int,Int,Int) dimensions (Array 7 E arr)
+
+Returns the dimensions of a seven-dimensional array
+
+[E] emptyArray
+
+Returns an empty array
+
+([E],Int) extract (Bool <- E fn,[E] arr, Int start)
+
+Starting at arr ! start, sees how many elements in succession fulfills the predicate fn, and allocates a new array with thos elements in it, in order. Zero length extraction is possible
+
+[E] fromList ({E} ls)
+
+Converts a list into an array. The order of the elements is preserved
+
+Bool (E elt) `in` ([E] arr)
+
+Returns true if elt is == to any element in arr. Otherwise returns false
+
+[E] junkArray (Int len)
+
+Returns a junk-array of length len. Extremely dangerous to use
+
+Int length ([E] arr)
+
+Returns the length of a one-dimensional array
+
+Int length (Array 2 E arr)
+
+Returns the length of a two-dimensional array (its' dimensions multiplied)
+
+Int length (Array 3 E arr)
+
+Returns the length of a three-dimensional array
+
+Int length (Array 4 E arr)
+
+Returns the length of a four-dimensional array
+
+Int length (Array 5 E arr)
+
+Returns the length of a five dimensional array
+
+Int length (Array 6 E arr)
+
+Returns the length of a six-dimensional array
+
+Int length (Array 7 E arr)
+
+Returns the length of a seven-dimensional array
+
+{E} list ([E] arr)
+
+Turns an array into a list. Order of elements preserved
+
+   Pools
+Types:
+struct Pool OBJ
+    [Mutable OBJ] arr
+    Mutable Int   vacant
+
+Functions:
+

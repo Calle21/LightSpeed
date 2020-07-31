@@ -9,14 +9,21 @@ Void format (String s, [String] args)
                              Char c = s ! i
                              if c == '% -> print '%
                                            loop (i + 1)
-                                digit c -> (String num,Int i) = extract (digit,s,i)
-                                           Int num = read num
+                                digit c -> (Int num,Int i) = readint (s,i)
                                            if s ! i == '% -> print << args ! num
                                                              loop (i + 1)
                                               else -> error "Expected another %"
                                 true -> error "Expected % or digit"
                   else -> print c
                           loop (i + 1)
+
+(Int,Int) readint (String s, Int i)
+  @loop (Int acc = charToDigit (s ! i)
+         Int i = i + 1)
+    Char c = s ! i
+    if digit c -> loop (acc * 10 + charToDigit c
+                        i + 1)
+       else -> (acc,i)
 
 String strstr (String a, String b)
   tcase b

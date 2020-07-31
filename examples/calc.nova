@@ -13,8 +13,8 @@ union Tok = Int,Char
   tcase s
     Void -> void
     Cons Char -> Char c = s.car
-                 if c == 'space -> lex s.cdr
-                    c `in` ['+,'-,'*,'/,'(,')] -> c : lex s.cdr
+                 if c == \space -> lex s.cdr
+                    c `in` [\+,\-,\*,\/,\(,\)] -> c : lex s.cdr
                     digit c -> (String num,String s) = span (digit, s)
                                Int num = readint num
                                num the Int : lex s
@@ -31,10 +31,10 @@ Int eval (Lang l)
   tcase l
     Int -> l
     Call -> case l.op
-              '+ -> eval l.arg1 + eval l.arg2
-              '- -> eval l.arg1 - eval l.arg2
-              '* -> eval l.arg1 * eval l.arg2
-              '/ -> eval l.arg1 / eval l.arg2
+              \+ -> eval l.arg1 + eval l.arg2
+              \- -> eval l.arg1 - eval l.arg2
+              \* -> eval l.arg1 * eval l.arg2
+              \/ -> eval l.arg1 / eval l.arg2
 
 Lang parse ({Tok} ls)
   (Lang l,{Tok} ls) = parseExpr ls
@@ -48,8 +48,8 @@ Lang parse ({Tok} ls)
     Void -> (a,ls)
     Cons Tok -> Tok tok = ls.car
                 tcase tok
-                  Char -> if tok `in` ['+,'-,'*,'/] -> parse1op (a,tok,ls.cdr)
-                             tok == ') -> (a,ls)
+                  Char -> if tok `in` [\+,\-,\*,\/] -> parse1op (a,tok,ls.cdr)
+                             tok == \) -> (a,ls)
                              true -> error "Expected operator or closing paren"
                   _ -> error "Expected operator or closing paren"
 
@@ -58,33 +58,33 @@ Lang parse ({Tok} ls)
   tcase ls
     Cons Tok -> Tok tok = ls.car
                 tcase tok
-                  Char -> if tok == ') -> (call (a,op,b),ls)
-                             tok `in` ['+,'-,'*,'/] -> case getWinner (op,tok)
-                                                         'l -> parse1op (call (a,op,b), tok, ls.cdr)
-                                                         'r -> (Lang b, {Tok} ls) = parse1op (b,tok,ls.cdr)
+                  Char -> if tok == \) -> (call (a,op,b),ls)
+                             tok `in` [\+,\-,\*,\/] -> case getWinner (op,tok)
+                                                         \l -> parse1op (call (a,op,b), tok, ls.cdr)
+                                                         \r -> (Lang b, {Tok} ls) = parse1op (b,tok,ls.cdr)
                                                                (call (a,op,b),ls)
                              else -> error "Expected closing paren or operator"
                   _ -> error "Expected closing paren or operator"
     _ -> (call (a,op,b),ls)
 
 Char getWinner (Char a, Char b)
-  if getStrength a < getStrength b -> 'r
-     else -> 'l
+  if getStrength a < getStrength b -> \r
+     else -> \l
 
 Int getStrength (Char c)
-  if c `in` ['+,'-] -> 0
-     c `in` ['*,'/] -> 1
+  if c `in` [\+,\-] -> 0
+     c `in` [\*,\/] -> 1
 
 (Lang,{Tok}) parseSub ({Tok} ls)
   tcase ls
     Cons Tok -> Tok tok = ls.car
                 tcase tok
                   Int -> (tok,ls.cdr)
-                  Char -> if tok == '( -> (Lang a, {Tok} ls) = parseExpr ls.cdr
+                  Char -> if tok == \( -> (Lang a, {Tok} ls) = parseExpr ls.cdr
                                           tcase ls
                                             Cons Tok -> Tok tok = ls.car
                                                         tcase tok
-                                                          Char -> if tok == ') -> (a,ls.cdr)
+                                                          Char -> if tok == \) -> (a,ls.cdr)
                                                                      else -> error "Expected closing paren"
                                                           _ -> error "Expected closing paren"
                                             _ -> error "Expected closing paren"
