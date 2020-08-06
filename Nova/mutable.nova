@@ -1,6 +1,13 @@
-synonym Mutable A = Mutable A
+synonym Ref A = Ref A
 
-struct Reference A
-    Mutable A var
+A read (Ref A a) = read a
 
-Void (Mutable A a0) := (A a1) = ...
+Void (Ref A r) := (A a) = r := a
+
+Void (Ref A r) += (A a) = r := read r + a
+
+Void (Ref A r) -= (A a) = r := read r - a
+
+Void (Ref A r) *= (A a) = r := read r * a
+
+Void (Ref A r) /= (A a) = r := read r / a

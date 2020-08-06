@@ -1,45 +1,39 @@
 union Doubly E = DoublyNode E, Void
 
 struct DoublyNode E
-    Mutable (Doubly E) before
-    E                  elem
-    Mutable (Doubly E) after
+    Doubly E before
+    E        elem
+    Doubly E after
+
+E (Doubly E d) ' (Int n)
+  tcase d
+    Void -> error "Index out of scope"
+    DoublyNode E -> if n == 0 -> d.elem
+                       else -> d.after ' (n - 1)
+
+E (Doubly E d) '' (Int n)
+  tcase d
+    Void -> error indexOut
+    DoublyNode E -> if n == 0 -> d.elem
+                       else -> d.before ' (n - 1)
+
+DoublyNode E circle (Cons E ls)
+  (DoublyNode E first
+   DoublyNode E last) = @loop (DoublyNode E prev = last
+                               {E} ls = ls
+                               DoublyNode E next = first)
+                          tcase ls
+                            Void -> (next,prev)
+                            Cons E -> DoublyNode E this = doublyNode (prev,ls.car,rest)
+                                      (DoublyNode E rest
+                                       DoublyNode E last) = loop (this,ls.cdr,next)
+                                      (this,last)
+  first
 
 Doubly E fromList ({E} ls)
-  tcase ls
-    Void -> void
-    Cons E -> foldl (insertAfter
-                     doublyNode (void,ls.car,void)
-                     ls.cdr)
-
-Doubly E insertAfter (Doubly E d, E elt)
-  tcase d
-    Void -> error "Void doubly"
-    DoublyNode E -> Doubly E after = d.after
-                    Doubly E d0 = doublyNode (d,elt,after)
-                    d.after := d0
-                    tcase after
-                      Void -> d0
-                      DoublyNode E -> after.before := d0
-                                      d0
-
-Doubly E insertBefore (Doubly E d, E elt)
-  tcase d
-    Void -> error "Void doubly"
-    Doubly E -> Doubly E before = d.before
-                Doubly E d0 = doublyNode (before,elt,d)
-                d.before := d0
-                tcase before
-                  Void -> d0
-                  DoublyNode E -> before.after := d0
-                                  d0
-
-Void remove (Doubly E d)
-  Doubly E before = d.before
-  Doubly E after = d.after
-  tcase before
-    Void -> void
-    DoublyNode E -> before.after := after
-  tcase after
-    Void -> void
-    DoublyNode E -> after.before := before
+  @loop (Doubly E prev = void
+         {E} ls = ls)
+    tcase ls
+      Void -> void
+      Cons E -> rec DoublyNode E d = doublyNode (prev,ls.car,loop (d,ls.cdr))
+                d

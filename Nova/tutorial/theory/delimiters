@@ -1,0 +1,78 @@
+There are three delimiters in Nova. (), [] and {}
+
+() is used to create tuples
+
+[] is used to create arrays
+
+{} is used to create lists
+
+(a,b) creates a tuple containing 'a' and 'b'
+
+[1,2,3] creates a one-dimensional array with the elements '1', '2' and '3'
+
+{1,2,3} creates a lsit with the elements '1', '2' and '3'
+
+There are two ways to write tuples. Comma-form and newline-form. The three examples above are written in comma-form. If they were written in newline-form they would look like this
+
+(a
+ b)
+
+[1
+ 2
+ 3]
+
+{1
+ 2
+ 3}
+
+The elements have to line up on the same column when writing in newline-form. Newline at the begining or the end is allowed
+     (
+   a
+   b
+   c
+      )
+
+  [
+      1
+      2
+      3
+  ]
+
+    { 1
+      2
+      3
+ }
+
+These are all valid delimiters. When writing in comma-form, newline is also permitted. 
+
+  (a , b , c
+       , d , e , f)
+
+  [
+   a , b , c ,
+      d , e , f
+  ]
+
+  { a , b , c
+, d , e , f
+   }
+
+are also valid delimiters
+
+Delimiters are also used when writing types. () is used for tuples, [] for array and {} for lists. Just like when writing expressions
+
+(A,B) a tuple with the types 'A' and 'B'
+
+[Int] an array containing 'Int'
+
+{{Char}} a list containing lists of 'Char'
+
+Newline and comma-form work the same way as with expressions when writing tuples
+
+ (A,B
+  ,C,D)
+
+(A
+ B)
+
+are both valid tuple-types

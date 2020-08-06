@@ -1,0 +1,133 @@
+struct MCons E
+    E           car
+    Ref MList E cdr
+
+union MList E = MCons E | Void
+
+Void (E elt) : (Ref MList E r)
+  ls := mCons (elt, read r)
+
+MList E (E elt) : (MList E rest)
+  mCons (elt, rest)
+
+Void (Ref Mlist E r) ++ (MList E ls)
+  last r := ls
+
+Void (MList E ls) ++ (Ref MList E r)
+  tcase ls
+    Void -> void
+    MCons E -> last a.cdr := read b
+               b := a
+
+E (MList E ls) ! (Int i)
+  tcase ls
+    Void -> error "Index out of scope"
+    MCons E -> if i == 0 -> ls.car
+                  else -> ls.cdr ! (i - 1)
+
+MList E (MList E ls) ! (Int n)
+  if n == 0 -> ls
+     else -> tcase ls
+               Void -> error "Index of out scope"
+               MCons E -> ls.cdr ! (n - 1)
+
+Bool all (Bool <- E fn, MList E ls)
+  tcase ls
+    Void -> true
+    MCons E -> fn ls.car & all (fn,ls.cdr)
+
+Maybe E (K key) `assoc` (MList (K,E) alist)
+  tcase alist
+    Void -> nothing
+    MCons (K,E) -> (K,E) node = alist.car
+                   if key == 1of2 node -> 2of2 node
+                      else -> key `assoc` alist.cdr
+
+MCons E circle (MCons E ls)
+  MCons E lst = last ls
+  lst.cdr := ls
+  ls
+
+MList E conc (MList (MList E) lss)
+  tcase lss
+    Void -> void
+    MCons (MList E) -> lss.car ++ conc lss.cdr
+
+MCons E copy (MCons E cs)
+  cs.car : copy cs.cdr
+
+MList E copy (MList E ls)
+  tcase ls
+    Void -> void
+    MCons E -> copy ls
+
+Void delete (E elt,Ref MList E r)
+  tcase read r
+    Void -> void
+    MCons E -> if it.car == elt -> r := it.cdr
+                  else -> it.cdr := delete (elt,it.cdr)
+
+MList E drop (Int i, MList E ls)
+  if i == 0 -> ls
+     else -> tcase ls
+               Void -> void
+               MCons E -> drop (i - 1,ls.cdr)
+
+MList E dropWhile (Bool <- E fn, MList E ls)
+  tcase ls
+    Void -> void
+    MCons E -> if fn ls.car -> dropWhile (fn, ls.cdr)
+                  else -> ls
+
+MList filter (Bool <- E fn, MList ls)
+  #MList (x | x <- ls, fn)
+
+(E | Void) find (I id, MList E ls, I <- E fn = id)
+  tcase ls
+    Void -> void
+    Cons E -> if id == fn ls.car -> ls.car
+                 else -> find (id, ls.cdr, fn)
+
+(E | Void) head (MList E ls)
+  tcase ls
+    Void -> void
+    MCons E -> ls.car
+
+E head (MCons E cs) = cs.car
+
+MCons E last (MCons E cs)
+  tcase read cs.cdr
+    Void -> cs
+    MCons E -> last (read cs.cdr)
+
+Mutable (MList E) last (Mutable (MList E) ref)
+  tcase read ref
+    Void -> ref
+    MCons E -> last (read ref).cdr
+
+Int length (MList ls)
+  tcase ls
+    Void -> 0
+    MCons E -> 1 + length ls.cdr
+
+MList B mapConc = conc << map
+
+Void nub (Mutable (MList E) ls)
+  @loop ({E} acc = {}
+         MList ls = ls)
+    tcase ls
+      Void -> void
+      MCons E -> if ls.car `member` acc -> loop (acc,ls.cdr)
+                    else -> ls.cdr := loop (ls.car : acc, ls.cdr)
+                            ls
+
+Void reverse (Mutable (MList E) ls)
+  tcase read ls
+    Void -> void
+    MCons E -> ls := @loop (MList E prev = read ls
+                            MList E cur = read (read ls).cdr)
+                       tcase cur
+                         Void -> prev
+                         MCons E -> MList E nxt = read cur.cdr
+                                    cur.cdr := prev
+                                    loop (cur,nxt)

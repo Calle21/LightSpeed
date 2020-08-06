@@ -1,0 +1,16 @@
+There are typeclasses in Nova. They are not the same as Haskell's typeclasses however. They are an important concept to understand.
+
+Typeclasses really only matter to the memory-management algorithms. Objects of the same typeclass will be treated identically by the memory-management algorithms, but differently by the compiler. Here are some examples of different type-classes
+
+Int
+Table Int
+(Int,Int)
+(Table Int,Int)
+
+New members of a type-class can be created with the 'type' keyword
+
+type Float = Int
+
+type Char = Int
+
+These two are defined in the Nova standard library. This means that 'Float' and 'Char' are not typeclasses them-selves, but members of the 'Int' typeclass

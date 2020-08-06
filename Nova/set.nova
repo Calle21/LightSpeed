@@ -46,7 +46,7 @@ Set E percolate (Set E t0, Set E t1)
                           left = t0
                           right = percolate (t1.left,t1.right)
 
-Int size (Set E tree)
+Int length (Set E tree)
   tcase tree
     Void -> 0
     SetNode E -> size tree.left + 1 + size tree.right
@@ -63,8 +63,10 @@ Bool (Map (K,E) m0) > (Map (K,E) m1)
 Bool (Map (K,E) m0) < (Map (K,E) m1)
   m0.key < m1.key
 
-(E | Void) lookup (K key, Set (Map (K,E)) tree)
+Maybe E lookup (K key, Set (Map (K,E)) tree)
   tcase tree
-    Void -> void
+    Void -> nothing
     SetNode (Map (K,E)) -> Map (K,E) map = tree.leaf
-                           if 
+                           if key < map.key -> lookup (key,tree.left)
+                              key > map.key -> lookup (key,tree.right)
+                              else -> map.elem

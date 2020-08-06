@@ -1,29 +1,21 @@
 module Main (main) where
 
 import Data.List (partition)
-import GetTypes
 import Import
-import Infix
 import Lex (lex')
-import GetBindings (getBindings)
-import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
-import System.FilePath.Posix ((</>), takeExtension, takeFileName)
+import Parse (parse)
+import System.Directory (doesDirectoryExist, listDirectory)
+import System.FilePath.Posix ((</>), takeExtension)
 
 main :: IO ()
 main = do contents <- listRecursive "."
 
-          usefile <- readFile "use"
-          let use = imp usefile
-
-          infixfile <- readFile' "infix"
-          let inf = readInfixFile infixfile
-
           files <- mapM readFile contents
-          let lexed  = concat $ map lex' (zip
-                                           (map takeFileName contents)
-                                           files)
-              types  = getTypes lexed
-              protos = getProtos lexed'
+
+          let lexed  = concatMap lex' $ zip contents files
+              parsed = parse lexed
+
+          return ()
 
 listRecursive :: FilePath -> IO [String]
 listRecursive path = do dirExists <- doesDirectoryExist path
@@ -36,9 +28,3 @@ listRecursive path = do dirExists <- doesDirectoryExist path
 
 listDirectory' :: FilePath -> IO [FilePath]
 listDirectory' path = map (path </>) `fmap` listDirectory path
-
-readFile' :: FilePath -> IO String
-readFile' path = do exists <- doesFileExist path
-                    if exists
-                    then readFile path
-                    else return []

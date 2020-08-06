@@ -1,98 +1,86 @@
-E ([E] arr) ! (Int i) = arr ! i
+struct Array E
+    Table E table
+    {Int}   dimensions
 
-[E] array (Int len, E start)
-  [E] arr = pure junkArray len -- Dangerous
-  for (i 0 (len - 1))
-    destroy arr
-      i = start
-  arr
+Void strs (
 
-[E] array (Int len, E <- () build)
-  [E] arr = pure junkArray len -- Dangerous
-  for (i 0 (len - 1))
-    destroy arr
-      i = build ()
-  arr
+E ([E] arr) ! ({Int} i)
+  arr.table ! @loop (Int multFactor = 1
+                {Int} dimensions = arr.dimensions
+                {Int} i = i}
+           tcase dimensions
+             Void -> tcase i
+                       Void -> 0
+                       _ -> error "Too many dimensions in index"
+             Cons Int -> tcase i
+                           Cons Int -> if i.car < dimensions.car -> (i.car * multFactor) + loop (multFactor * dimensions.car
+                                                                                                 dimensions.cdr
+                                                                                                 i.cdr)
+                                          else -> error "Index out of range"
+                           _ -> error "Too few dimensions in index"
 
-(Int | Void) binsearch (E elem, [E] arr)
+[E] array ({Int} dims, E start) = array (dims,start)
+
+[E] array ({Int} dims, E << () build) = array (dims,build)
+
+Maybe Int binsearch (E elem, [E] arr)
   @loop (Int lo = 0, Int hi = length arr - 1)
-    if lo > hi -> void
+    if lo > hi -> failure
        else -> Int mid = (lo + hi) / 2
                E midelem = arr ! mid
                if elem < midelem -> loop (lo, mid - 1)
                   elem > midelem -> loop (mid + 1, hi)
                   else -> mid
 
-Int dimensions ([E] arr) = dimensions arr
-(Int,Int) dimensions (Array 2 E arr) = dimensions arr
-(Int,Int,Int) dimensions (Array 3 E arr) = dimensions arr
-(Int,Int,Int,Int) dimensions (Array 4 E arr) = dimensions arr
-(Int,Int,Int,Int,Int) dimensions (Array 5 E arr) = dimensions arr
-(Int,Int,Int,Int,Int,Int) dimensions (Array 6 E arr) = dimensions arr
-(Int,Int,Int,Int,Int,Int,Int) dimensions (Array 7 E arr) = dimensions arr
+[E] subseq ([E] arr,Int start,Int end) = subseq (arr,start,end)
 
-[E] emptyArray = pure junkArray 0
+[E] fromList ({E} ls) = fromList ls
 
-([E],Int) extract (Bool <- E fn,[E] arr, Int start)
-  Int len = @loop (Int i = start)
-              if fn << arr ! i -> loop (i + 1)
-                 else -> i - start
-  [E] ret = pure junkArray len -- Dangerous
-  for (i 0 (len - 1))
-    destroy ret
-      i = arr ! start + i
-  (ret,start + len)
-
-[E] fromList ({E} ls)
-  Int len = length ls
-  [E] arr = pure junkArray len -- Dangerous
-  @loop ({E} ls = ls)
-         Int i = 0)
-    if i == len -> arr
-       else -> destroy arr
-                 i = ls.car
-               loop (ls.cdr, i + 1)
-
-Bool (E elt) `in` ([E] arr)
-  Int end = length arr
+Bool member (I id, [E] arr, I <- E fn = id)
   @loop (Int i = 0)
-    if i   == end -> false
-       elt == arr ! i -> true
+    if i == length arr -> false
+       id == fn \ arr ! {i} -> true
        else -> loop (i + 1)
 
-[E] junkArray (Int len) = junkArray len
-
-Int length ([E] arr) = dimensions arr
-
-Int length (Array 2 E arr)
-  (a,b) = dimensions arr
-  a * b
-
-Int length (Array 3 E arr)
-  (a,b,c) = dimensions arr
-  a * b * c
-
-Int length (Array 4 E arr)
-  (a,b,c,d) = dimensions arr
-  a * b * c * d
-
-Int length (Array 5 E arr)
-  (a,b,c,d,e) = dimensions arr
-  a * b * c * d * e
-
-Int length (Array 6 E arr)
-  (a,b,c,d,e,f) = dimensions arr
-  a * b * c * d * e * f
-
-Int length (Array 7 E arr)
-  (a,b,c,d,e,f,g) = dimensions arr
-  a * b * c * d * e * f * g
+Int length ([E] arr)
+  {Int} dims = arr.dimensions
+  if null dims -> 0
+     else -> foldr (`*`,1,dims)
 
 {E} list ([E] arr)
-  Int end = length arr
   @loop (Int i = 0)
-    if i == end -> void
-       else -> (arr ! i) : loop (i + 1)
+    if i == length arr -> void
+       else -> (arr.table ! i) : loop (i + 1)
+
+Void aSort ([Mutable E] arr) = sort (arr, `<`, id)
+
+Void dSort ([Mutable E] arr) = sort (arr, `>`, id)
+
+Void sort ([Mutable E] arr, Bool <- (I,I) comp, I <- E on)
+  @sort (Int lo = 0, Int hi = length arr - 1)
+    if hi <= lo -> void
+       else -> swap (arr, lo, (lo + hi) / 2)
+               I midid = on \ arr ! {lo}
+               @loop (Int midindex = lo
+                      Int hiindex = hi)
+                 if midindex == hiindex -> sort (lo,midindex - 1)
+                                           sort (midindex + 1,hi)
+                    else -> if on (arr ! {midindex + 1}) `comp` midid -> swap (arr,midindex,midindex + 1)
+                                                                         loop (midindex + 1,hiindex)
+                               else -> swap (arr,midindex + 1,hiindex)
+                                       loop (midindex,hiindex - 1)
+
+[E] aSort ([E] arr) = sort (arr,`<`,id)
+
+[E] dSort ([E] arr) = sort (arr,`>`,id)
+
+[E] sort ([E] arr, Bool <- (I,I) comp, I <- E on)
+  fromList \ sort (list arr, comp, on)
+
+Void swap ([Mutable E] arr, Int i0, Int i1)
+  E temp = arr ! i0
+  arr ! i0 := arr ! i1
+  arr ! i1 := temp
 
  -- Pools
 

@@ -1,7 +1,14 @@
 enum Bool = false, true
 
-Bool (Bool a) && (Bool b) = ...
-Bool (Bool a) || (Bool b) = ...
+infixr Bool (Bool a) & (Delayed Bool b) = if a -> b
+                                             else -> false
+
+infixr Bool (Bool a) | (Delayed Bool b) = if a -> true
+                                             else -> b
+
+Bool (A a) == (A b) = a == b
+
+Bool (A a) != (A b) = not \ a == b
 
 Bool not (Bool b)
   if b -> false

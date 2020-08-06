@@ -1,81 +1,63 @@
-synonym SudokuTemplate = Array 2 (Int | Void)
+synonym SudokuTemplate = [Maybe Int]
 
-synonym Sudoku = Array 2 Mutable (Int | Void)
+synonym Sudoku = [Ref Maybe Int]
 
-synonym Board = Array 2 Mutable (Set Int)
+synonym Board = [Ref MList Int]
 
-Sudoku solveSudoku (SudokuTemplate sudt)
+parallel Sudoku solveSudoku (SudokuTemplate sudt)
   Sudoku sud = makeSudoku sudt
   Board board = makeBoard
   @loop
     eliminate (sud,board)
-    Bool changed = fill (sud,board,false)
-    if not changed || done sud -> sud
+    Bool changed = fill (board,sud)
+    if not changed | done sud -> sud
        else -> loop
 
-Bool done (Sudoku sud)
-  all isInt sud
-
-Bool isInt (Mutable (Int | Void) m)
-  tcase m
-    Int -> true
-    _   -> false
-
-Bool fill (Sudoku sud, Board board, Mutable Bool changed)
-  for (x 0 8)
-   for (y 0 8)
-    Set Int tree = board ! (x,y)
-    if size tree == 1 -> Mutable (Int | Void) m = sud ! (x,y)
-                         (Int | Void) i = m
-                         tcase i
-                           Void -> m := tree.leaf
-                                   changed := true
-                           Int -> void
-       else -> void
-  changed
-
-Void eliminate (Sudoku sud,Board board)
-  for (x 0 8)
-   for (y 0 8)
-    (Int | Void) i = sud ! (x,y)
-    tcase i
-      Void -> void
-      Int -> for (x 0 8)
-               Mutable (Set Int) m = board ! (x,y)
-               m := delete (i, m)
-             for (y 0 8)
-               Mutable (Set Int) m = board ! (x,y)
-               m := delete (i, m)
-             Int startx = x - (x `mod` 3)
-             Int starty = y - (y `mod` 3)
-             for (x startx (startx + 2))
-              for (y starty (starty + 2))
-               Mutable (Set Int) m = board ! (x,y)
-               m := delete (i, m)
-    
-
-Board makeBoard
-  array ((9,9),makeInitialSet)
-
-Set Int makeInitialSet
-  @loop (Set Int set = void)
-    if size set == 10 -> set
-       else -> Int next = @getInt (Int a = pure random 10)
-                            if a `member` set -> getInt pure random 10
-                               else -> a
-               loop (insert (next, set))
-
 Sudoku makeSudoku (SudokuTemplate sudt)
-  Sudoku sud = array ((9,9),void)
+  Sudoku sud = array ({9,9},nothing)
   each (a <- sudt
         b <- sud)
     b := a
   sud
+    
+Board makeBoard = array ({9,9},makeInitialSet)
 
-{Sudoku} solveSudokus ({SudokuTemplate} sudts)
+MList Int makeInitialSet () = {1..9}
+
+Void eliminate (Sudoku sud,Board board)
+  for (x 0 8)
+   for (y 0 8)
+    Maybe Int i = read \ sud ! {x,y}
+    tcase i
+      Nothing -> void
+      Int -> for (x 0 8)
+               delete (i,board ! {x,y})
+             for (y 0 8)
+               delete (i, board {x,y})
+             Int startx = x - (x % 3)
+             Int starty = y - (y % 3)
+             for (x startx (startx + 2))
+              for (y starty (starty + 2))
+               delete (i, board ! {x,y})
+
+Bool fill (Board board,Sudoku sud)
+  Ref Bool changed = false
+  for (x 0 8)
+   for (y 0 8)
+    MList Int ls = read \ board ! {x,y}
+    if length ls == 1 -> sud ! {x,y} := ls.car
+                         changed := true
+       else -> void
+  read changed
+
+Bool done (Sudoku sud) = all isInt sud
+
+Bool isInt (Ref Maybe Int r)
+  tcase read r
+    Int -> true
+    _   -> false
+
+parallel {Sudoku} solveSudokus ({SudokuTemplate} sudts)
   tcase sudts
     Void -> void
-    Cons SudokuTemplate -> parallel
-                             Sudoku a <- solveSudoku sudts.car
-                             {Sudoku} b <- solveSudoku sudts.cdr
-                           a : b
+    Cons SudokuTemplate -> solveSudoku sudts.car : solveSudokus sudts.cdr

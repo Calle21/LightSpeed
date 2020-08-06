@@ -1,0 +1,5 @@
+union Maybe A = A, Nothing
+
+type Nothing = Void
+
+Nothing nothing = void as Nothing

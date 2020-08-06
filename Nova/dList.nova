@@ -1,0 +1,10 @@
+union DList E = Delayed (DCons E), Void
+
+struct DCons E
+    E     car
+    DList cdr
+
+Delayed (DCons E) fromThen (E a, E b)
+  E diff = b - a
+  a : b : @rec (E c = b + diff)
+            c : rec (c + diff)

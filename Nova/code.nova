@@ -1,0 +1,18 @@
+struct Function (RETURN,PARAM)
+    Code      code
+    {Param}   params
+    {Binding} clojures
+
+struct Param
+    Union pattern
+    Union default
+
+struct Binding
+    Union pattern
+    Union value
+
+type Name = String
+
+struct Funcall (RETURN,PARAM)
+    RETURN <- PARAM function
+    PARAM           params

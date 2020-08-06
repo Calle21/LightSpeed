@@ -1,0 +1,6 @@
+enum Comparison = lt, eq, gt
+
+Comparison (Int a) ~ (Int b)
+  if a < b -> lt
+     a > b -> gt
+     else -> eq

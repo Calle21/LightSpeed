@@ -1,0 +1,25 @@
+dot notation is used in nova to access struct fields. However, it can be used for a lot more than that
+
+a.b
+
+this expression would parse as
+
+(b a)
+
+that is, apply 'a' to 'b'. This may seem like a very simple parsing trick, but it is very useful.
+
+plane.increaseSpeed
+
+would become
+
+(increaseSpeed plane)
+
+and
+
+(plane0,plane1).collide
+
+would become
+
+(collide (plane0,plane1))
+
+So, with a very simple maneuver Nova implements the feel of object-oriented languages.

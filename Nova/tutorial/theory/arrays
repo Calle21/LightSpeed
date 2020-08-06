@@ -1,0 +1,3 @@
+Arrays are not a primitive type in Nova. Instead they are implemented as a tuple. In this tuple the first element is a table containing the elements of the array, and the second element is a list of 'Int' describing the dimensions of the array.
+
+This means that the number of dimensions in the array does not matter to the type-checker. This may be inconvenient, but arrays are easier to implement that way.

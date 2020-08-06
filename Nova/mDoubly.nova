@@ -1,0 +1,36 @@
+union MDoubly E = MDoublyNode E, Void
+
+struct MDoublyNode E
+    Mutable (MDoubly E) before
+    E                   elem
+    Mutable (MDoubly E) after
+
+
+
+MDoublyNode E (MDoublyNode E node) ; (E elt)
+  Doubly E after = node.after
+  Doubly E d0 = doublyNode (d,elt,after)
+  d.after := d0
+  tcase after
+    Void -> d0
+    DoublyNode E -> after.before := d0
+                    d0
+
+MDoublyNode E (E elt) ; (MDoublyNode E node)
+  Doubly E before = d.before
+  Doubly E d0 = doublyNode (before,elt,d)
+  d.before := d0
+  tcase before
+    Void -> d0
+    DoublyNode E -> before.after := d0
+                    d0
+
+Void remove (MDoublyNode E d)
+  Doubly E before = d.before
+  Doubly E after = d.after
+  tcase before
+    Void -> void
+    DoublyNode E -> before.after := after
+  tcase after
+    Void -> void
+    DoublyNode E -> after.before := before

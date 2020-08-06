@@ -1,20 +1,68 @@
-locals += diff
-
 type Char = Int
 
+Bool (Char a) < (Char b) = a as Int < b as Int
+
+Bool (Char a) > (Char b) = a as Int > b as Int
+
+Bool (Char a) <= (Char b) = a as Int <= b as Int
+
+Bool (Char a) >= (Char b) = a as Int >= b as Int
+
+Maybe Char (Char a) < (Char b) = if a as Int < b as Int -> a
+                                    else -> nothing
+
+Maybe Char (Char a) > (Char b) = if a as Int > b as Int -> a
+                                    else -> nothing
+
+Maybe Char (Char a) <= (Char b) = if a as Int <= b as Int -> a
+                                     else -> nothing
+
+Maybe Char (Char a) >= (Char b) = if a as Int >= b as Int -> a
+                                     else -> nothing
+
+Bool (Char a) < (Maybe Char b) = tcase b
+                                   Nothing -> false
+                                   Char -> a as Int < b as Int
+
+Bool (Char a) > (Maybe Char b) = tcase b
+                                   Nothing -> false
+                                   Char -> a as Int > b as Int
+
+Bool (Char a) =< (Maybe Char b) = tcase b
+                                    Nothing -> false
+                                    Char -> a as Int =< b as Int
+
+Bool (Char a) => (Maybe Char b) = tcase b
+                                    Nothing -> false
+                                    Char -> a as Int => b as Int
+
+Maybe Char (Char a) < (Maybe Char b) = tcase b
+                                         Nothing -> nothing
+                                         Char -> a as Int < b as Int
+
+Maybe Char (Char a) > (Maybe Char b) = tcase b
+                                         Nothing -> nothing
+                                         Char -> a as Int > b as Int
+
+Maybe Char (Char a) =< (Maybe Char b) = tcase b
+                                          Nothing -> nothing
+                                          Char -> a as Int =< b as Int
+
+Maybe Char (Char a) => (Maybe Char b) = tcase b
+                                          Nothing -> nothing
+                                          Char -> a as Int => b as Int
+
 Bool alpha (Char c)
-  lower c || upper c
+  lower c | upper c
 
 Bool alphaNumeric (Char c)
-  alpha c || digit c
+  alpha c | digit c
 
 Int charToDigit (Char c)
-  i = (c as Int) - ('0 as Int)
+  Int i = (c as Int) - (\0 as Int)
   range i
     (0,9) -> i
     _ -> error "Not a digit"
-
-Int diff = int 'a - int 'A
 
 Bool digit (Char c)
   range c
@@ -25,6 +73,8 @@ Bool lower (Char c)
   range c
     (\a,\z) -> true
     _ -> false
+
+local Int diff = int \a - int \A
 
 Char toLower (Char c)
   range c
@@ -42,4 +92,4 @@ Bool upper (Char c)
     _ -> false
 
 Bool wordChar (Char c)
-  alphaNumeric c || c == '_
+  alphaNumeric c | c == \_

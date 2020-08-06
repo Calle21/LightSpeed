@@ -1,0 +1,115 @@
+In Nova, there are six keywords which you can use to define new types. These are
+
+1. synonym
+2. type
+3. struct
+4. union
+5. enum
+6. class
+
+They all also accept type-variables
+
+synonym
+With the 'synonym' keyword you don't really create any new types. You just create a synonym for another type. The Nova library defines one synonym
+
+synonym String = Table Char
+
+That is, a 'String' is a table of Char. Whenever you write 'String' you may as well have written 'Table Char', but it may be easier to understand what the type is if you use a synonym
+
+type
+With the type keyword, you write wrapper types. This is useful when you want to overload functions that take the same type, but treats them differently. Example
+
+type Product = {Int}
+type Sum = {Int}
+
+Int append (Product p)
+  foldr (`*`,1,p as {Int})
+
+Int append (Sum s)
+  foldr (`+`,0,s as {Int})
+
+the 'as' keyword is used to wrap or unwrap
+
+9 as Float
+9.0 as Int
+
+would convert between 'Float' and 'Int'
+
+struct
+the struct is much like the C struct, minus semi-colons.
+
+struct Point
+    Int x
+    Int y
+
+Structs may inherit from classes
+
+class Flying
+    Float altitude
+
+struct Flying >> Plane
+    String name
+
+Now, 'Plane' would inherit the 'alitude' field from the 'Flying' class, and any member functions written for 'Flying'
+
+Multiple inheritance is possible
+
+class Destructible
+    Float life
+
+struct (Flying,Destructible) >> Bird
+    Color color
+
+union
+The 'union' keyword is just syntactic sugar for 'synonym'
+
+union Un = Int,Char
+
+is equivalent to
+
+synonym Un = Int | Char
+
+enum
+'enum' is also syntactic sugar, but it does more work than 'union'
+
+enum Bool = false, true
+
+expands into
+
+type Bool = Int
+
+Bool false = 0 as Bool
+Bool true = 1 as Bool
+
+Void print (Bool a) = switch a
+                        false -> print "false"
+                        true -> print "true"
+
+The 'as' keyword is used to safely (?) cast values that belong to the same class of types. That is, values that has been defined with 'type' for a specific type, and that type
+
+class
+With the 'class' keyword, you don't really define any new type, just a template that structs, or other classes, can inherit from.
+
+class Movable
+    Ref Float xpos
+    Ref Float ypos
+    Ref Float zpos
+
+may be a class in a 3D game
+
+Member functions are written like this
+
+Void move (Movable m, Int x, Int y, Int z)
+  m.xpos += x
+  m.ypos += y
+  m.zpos += z
+
+and called like this
+
+struct Movable >> Ball
+    Float size
+    Color color
+
+Ball b = ball (0.0,0.0,0.0,10.0,red)
+
+ball.move (1.0,1.0,1.0)

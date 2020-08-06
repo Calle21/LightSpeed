@@ -2,108 +2,90 @@ struct Cons E
     E   car
     {E} cdr
 
-Union List E = Cons E, Void
+union List E = Cons E, Void
 
 Cons E (E elt) : ({E} rest)
   cons (elt, rest)
 
-{E} ({E} a) ++ ({E} b)
+infixr {E} ({E} a) ++ ({E} b)
   tcase b
     Void -> a
-  foldr (`:`, b, a)
+    _ -> foldr (:, b, a)
 
 E ({E} ls) ! (Int i)
   tcase ls
     Void   -> error "Index out of scope"
     Cons E -> if i == 0 -> ls.car
-                 true -> ls.cdr ! (i - 1)
+                 else -> ls.cdr ! (i - 1)
 
-infixl 5 !!
-{E} ({E} ls) !! (Int n)
+{E} ({E} ls) ! (Int n)
   if n == 0 -> ls
-     else   -> tcase ls
-                 Void -> error "Index of out scope"
-                 Cons E -> ls.cdr !! n - 1
+     else -> tcase ls
+               Void -> error "Index of out scope"
+               Cons E -> ls.cdr ! (n - 1)
 
 Bool all (Bool <- E fn, {E} ls)
   tcase ls
     Void -> true
-    Cons E -> fn ls.car
-              all (fn,ls.cdr)
+    Cons E -> fn ls.car & all (fn,ls.cdr)
 
-(E | Void) (K key) `assoc` ({(K,E)} alist)
+Maybe E (K key) `assoc` ({(K,E)} alist)
   tcase alist
-    Void       -> void
-    Cons (K,E) -> node = alist.car
+    Void -> void
+    Cons (K,E) -> (K,E) node = alist.car
                   if key == 1of2 node -> 2of2 node
-                     true -> key `assoc` alist.cdr
+                     else -> key `assoc` alist.cdr
 
-{E} circle ({E} ls)
-  ncircle << foldr (`:`, {}, ls)
+Cons E circle (Cons E ls)
+  rec Cons E ls0 = fromList ls ++ ls0
+  ls0
 
 {E} conc ({{E}} lss)
-  tcase lss
-    Void   -> void
-    Cons E -> lss.car ++ conc lss.cdr
+  foldr (`++`,void,lss)
 
 {E} drop (Int n, {E} ls)
   if n == 0 -> ls
-     true -> tcase ls
-               Void   -> void
+     else -> tcase ls
+               Void -> void
                Cons E -> drop (n - 1, ls.cdr)
 
 {E} dropWhile (Bool <- E fn, {E} ls)
   tcase ls
-    Void   -> void
+    Void -> void
     Cons E -> if fn ls.car -> dropWhile (fn, ls.cdr)
-                 true -> ls
+                 else -> ls
 
 {E} filter (Bool <- E fn, {E} ls)
-  tcase ls
-    Void   -> void
-    Cons E -> if fn ls.car -> ls.car : filter (fn, ls.cdr)
-                 true -> filter (fn, ls.cdr)
+  {x | E x <- ls , fn}
 
-(E | Void) find (I id, {E} ls, I <- E fn)
+infixl Maybe E find (I id, {E} ls, I <- E fn = id)
   tcase ls
     Void -> void
     Cons E -> if id == fn ls.car -> ls.car
                  else -> find (id, ls.cdr, fn)
 
-A foldl (A <- (A,B) fn, A start, [B] ls)
-  tacse ls
-    Void   -> start
-    Cons E -> foldl (fn, fn (start, ls.car), ls.cdr)
-
-A foldr (A <- (B,A) fn, A start, [B] ls)
+B foldl (B <- (B,A) fn, B start, {A} ls)
   tcase ls
-    Void   -> start
-    Cons B -> fn (ls.car, foldr (fn, start, ls.cdr))
+    Void -> start
+    Cons A -> foldl (fn, fn (start, ls.car), ls.cdr)
 
-{E} fromThen (E a, E b)
-  E diff = b - a
-  a : b : @rec (E c = b + diff)
-            c : delay rec (c + diff)
+B foldr (B <- (A,B) fn, B end, {A} ls)
+  tcase ls
+    Void -> end
+    Cons A -> fn (ls.car, foldr (fn, end, ls.cdr))
 
 {E} fromThenTo (E a, E b, E stop)
   E diff = b - a
   a : b : @rec (E c = b + diff)
             if c > stop -> void
-               true -> c : rec (c + diff)
+               else -> c : rec (c + diff)
 
-E head ({E} ls)
+Maybe E head ({E} ls)
   tcase ls
-    Void   -> error "Didn't expect an empty list"
+    Void -> nothing
     Cons E -> ls.car
 
-Bool (E elt) `in` ({E} ls)
-  member (elt,ls,id)
-
-Bool member (A id, {E} ls, A <- E fn)
-  tcase ls
-    Void -> false
-    Cons E -> if id == fn ls.car -> true
-                 else -> member (id,ls.cdr,fn)
+E head (Cons E cs) = cs.car
 
 
 {E} intersect ({{E}} lss}
@@ -121,14 +103,13 @@ Bool member (A id, {E} ls, A <- E fn)
                                          if all (member (fn elt,#1,fn),lss) -> elt : build ls.cdr
                                             else -> build ls.cdr
 
-Cons E last ({E} ls)
-  tcase ls
-    Void -> error "Empty list"
-    Cons E -> @loop (Cons E ls = ls)
-                nxt = ls.cdr
-                tcase nxt
-                  Void -> ls
-                  Cons E -> loop nxt
+Cons E last (Cons E ls)
+  tcase ls.cdr
+    Void -> ls
+    Cons E -> last ls.cdr
+
+E last (Cons E ls)
+  (last ls).car
 
 Int length ({E} ls)
   tcase ls
@@ -140,7 +121,12 @@ Int length ({E} ls)
     Void   -> void
     Cons E -> fn ls.car : map (fn, ls.cdr)
 
-{B} mapConc = nconc `compose` map
+Void map (Void << A act, {A} ls)
+  each (A a <- ls)
+    act a
+
+{B} mapConc ({B} <- A fn, {A} ls)
+  conc \ map (fn,ls)
 
 {B} map2 (B <- (A,A) fn, {A} ls)
   match ls
@@ -157,47 +143,23 @@ Int length ({E} ls)
                   A -> b = ls.car
                        (a `fn` b) : loop (b,ls.cdr)
 
-{E} ncircle ({E} ls)
+Bool member (I id, {E} ls, I <- E on = id)
   tcase ls
-    Void -> error "Empty list"
-    Cons E -> destroy last ls
-                cdr = ls
-              ls
-
-{E} nconc ({{E}} lss)
-  tcase lss
-    Void -> void
-    Cons E -> lss.car `nconc2` nconc lss.cdr
-
-{E} nconc2 ({E} a, {E} b)
-  tcase a
-    Void -> void
-    Cons E -> destroy last a
-                cdr = b
-
-{E} nreverse ({E} ls)
-  tcase ls
-    Void -> void
-    Cons E -> @loop ({E} prev = ls
-                     {E} cur = ls.cdr)
-                tcase cur
-                  Void -> prev
-                  Cons E -> nxt = cur.cdr
-                            loop (destroy cur
-                                    cdr = prec
-                                  nxt)
+    Void -> false
+    Cons E -> if id == on ls.car -> true
+                 else -> member (id,ls.cdr,on)
 
 {E} nub ({E} ls)
   @loop ({E} acc = {}
          {E} ls = ls)
     tcase ls
-      Void -> nreverse acc
+      Void -> reverse acc
       Cons E -> if ls.car `in` acc -> loop (acc, ls.cdr)
                    else -> loop (ls.car : acc, ls.cdr)
 
 ({E}, {E}) partition (Bool <- E fn, {E} ls)
   (filter (fn, ls)
-   filter (not . fn, ls))
+   filter (not `compose` fn, ls))
 
 Bool ({E} a) `prefix` ({E} b)
   @loop ({E} a0 = a, {E} b0 = b)
@@ -208,17 +170,23 @@ Bool ({E} a) `prefix` ({E} b)
                   Cons E -> if a0.car == a1.car -> loop (a0.cdr, a1.cdr)
                                else -> a `prefix` b.cdr
 
-{E} quicksort ({E} ls)
-  tcase ls
-    Void   -> void
-    Cons E -> if null ls.cdr -> ls
-                 else -> mid = ls.car
-                         under = filter (ls, #1 < mid)
-                         over  = filter (ls, #1 > mid)
-                         quicksort under `nconc2` {mid} `nconc2` quicksort over
+{E} aSort ({E} ls) = sort (ls,`<`,id)
+
+{E} dSort ({E} ls) = sort (ls,`>`,id)
+
+{E} sort ({E} ls, Bool <- (I,I) comp = `<`, I <- E on)
+  Bool comp0 (E e0, E e1) = on e0 `comp` on e1
+  @loop ({E} ls = ls)
+    tcase ls
+      Void   -> void
+      Cons E -> if null ls.cdr -> ls
+                   else -> E mid = ls.car
+                           {E} before = filter (ls, #1 `comp0` mid)
+                           {E} after = filter (ls, mid `comp0` #1)
+                           loop before ++ {mid} ++ loop after
 
 {E} repeat (E elt, Int n)
-  if n <= 0 -> void
+  if n == 0 -> void
      else -> elt : repeat (elt, n - 1)
 
 {E} reverse ({E} ls)
@@ -231,18 +199,23 @@ Bool ({E} a) `prefix` ({E} b)
 
 {E} rplacd ({E} ls0, {E} ls1)
   tcase ls0
-    Cons E -> modify ls0
-                cdr : ls1
+    Cons E -> ls0.cdr := ls1
+              ls0
     Void -> error "Empty list"
 
 ({E}, {E}) span (Bool <- E fn, {E} ls)
   (takeWhile (fn, ls)
    dropWhile (fn, ls))
 
-{E} tail ({E} ls)
+{E} subseq ({E} ls, Int start, Int end)
+  take (end - start,drop (start ls))
+
+Maybe {E} tail ({E} ls)
   tcase ls
-    Void   -> error "Didn't expect an empty list"
+    Void -> nothing
     Cons E -> ls.cdr
+
+{E} tail (Cons E ls) = ls.cdr
 
 {E} take (Int n, {E} ls)
   if n <= 0 -> void
@@ -256,38 +229,16 @@ Bool ({E} a) `prefix` ({E} b)
     Cons E -> if fn ls.car -> ls.car : takeWhile (fn, ls.cdr)
                  true -> void
 
-{E} unite ({{E}} lss)
-  uniteOn (id,lss)
-
-{E} uniteOn (A <- E fn, {{E}} lss)
-  tcase lss
-    Void -> {}
-    Cons E -> if length lss == 1 -> lss.car
-                 else -> @loop ({E} acc = {}
-                                {E} ls = lss.car
-                                {{E}} lss = lss.cdr)
-                           tcase ls
-                             Void -> tcase lss
-                                       Void -> acc
-                                       Cons E -> loop (acc,lss.car,lss.cdr
-                             Cons E -> if E elt = ls.car
-                                          member (fn elt,acc,fn) -> loop (acc,ls.cdr,lss)
-                                          else -> loop (elt : acc,ls.cdr,lss)
+{E} unite ({E} a, {E} b, I <- E on = id) = { x
+                                           | x <- a , lambda (E x) -> not \ member (on x,b,on)
+                                           | b }
 
 ({A},{B}) unzip ({(A,B)} ab)
-  @loop ({A} a = {}
-         {B} b = {}
-         {(A,B)} ab = ab)
-    tcase ab
-      Void -> (nreverse a, nreverse b)
-      Cons E -> cell = ab.car
-                loop (1of2 cell : a
-                      2of2 cell : b
-                      ab.cdr)
+  tcase ab
+    Void -> ({},{})
+    Cons (A,B) -> (a,b) = unzip ab.cdr
+                  (1of2 ab.car : a
+                   2of2 ab.car : b)
 
 {(A,B)} zip ({A} a, {B} b)
-  tcase a
-    Void -> void
-    Cons E -> tcase b
-                Void -> void
-                Cons E -> (a.car,b.car) : zip (a.cdr,b.cdr)
+  {(a,b) | A a <- a | B b <- b}

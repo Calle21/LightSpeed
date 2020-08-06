@@ -1,23 +1,23 @@
 type Float = Int
 
-Int (Int a) + (Int b) = a + b
-Int (Int a) * (Int b) = a * b
-Int (Int a) - (Int b) = a - b
-Int (Int a) / (Int b) = a / b
+infixl Int (Int a) + (Int b) = a + b
+infixl Int (Int a) * (Int b) = a * b
+infixl Int (Int a) - (Int b) = a - b
+infixl Int (Int a) / (Int b) = a / b
 
-Float (Float a) + (Float b) = a + b
-Float (Float a) * (Float b) = a * b
-Float (Float a) - (Float b) = a - b
-Float (Float a) / (Float b) = a / b
+infixl Float (Float a) + (Float b) = a + b
+infixl Float (Float a) * (Float b) = a * b
+infixl Float (Float a) - (Float b) = a - b
+infixl Float (Float a) / (Float b) = a / b
 
-Int (Int b) ^ (Int e)
+infixr Int (Int b) ^ (Int e)
   if e < 0  -> error "Negative exponent"
      e == 0 -> 1
      else -> @loop (Int e = e) (Int res = b)
                if e == 1 -> res
                   true -> loop (e - 1, res * b)
 
-Float (Float b) ^ (Int e)
+infixr Float (Float b) ^ (Int e)
   if e == 0 -> 1
      else -> neg = if e < 0 -> true
                       true -> false
@@ -31,8 +31,64 @@ Int abs (Int i)
   if i < 0 -> complement (i + 1)
      else -> i
 
-Int fact (Int n)
+Int (Int n) !
   if n < 0 -> error "Factorial of negative integer"
      else -> @loop (Int n = n)
                if n == 0 -> 1
                   true -> n * loop (n - 1)
+
+Bool even (Int n) = n % 2 == 0
+
+Bool odd (Int n) = n % 2 == 1
+
+Bool (Int a) < (Int b) = a < b
+
+Bool (Int a) > (Int b) = a > b
+
+Bool (Int a) <= (Int b) = not \ a > b
+
+Bool (Int a) >= (Int b) = not \ a < b
+
+Maybe Int (Int a) < (Int b) = if a < b -> a
+                                 else -> nothing
+
+Maybe Int (Int a) > (Int b) = if a > b -> a
+                                 else -> nothing
+
+Maybe Int (Int a) <= (Int b) = if a <= b -> a
+                                  else -> nothing
+
+Maybe Int (Int a) >= (Int b) = if a >= b -> a
+                                  else -> nothing
+
+Bool (Int a) < (Maybe Int b) = tcase b
+                                 Nothing -> false
+                                 Int -> a < b
+
+Bool (Int a) > (Maybe Int b) = tcase b
+                                 Nothing -> false
+                                 Int -> a > b
+
+Bool (Int a) =< (Maybe Int b) = tcase b
+                                 Nothing -> false
+                                 Int -> a =< b
+
+Bool (Int a) => (Maybe Int b) = tcase b
+                                 Nothing -> false
+                                 Int -> a => b
+
+Maybe Int (Int a) < (Maybe Int b) = tcase b
+                                      Nothing -> nothing
+                                      Int -> a < b
+
+Maybe Int (Int a) > (Maybe Int b) = tcase b
+                                      Nothing -> nothing
+                                      Int -> a > b
+
+Maybe Int (Int a) =< (Maybe Int b) = tcase b
+                                      Nothing -> nothing
+                                      Int -> a =< b
+
+Maybe Int (Int a) => (Maybe Int b) = tcase b
+                                      Nothing -> nothing
+                                      Int -> a => b

@@ -1,5 +1,12 @@
 module Interpret (eval) where
 
+data NovaData = NovaData Desc [NovaData]
+
+data Desc = Int
+          | Table Desc
+          | Tuple [Desc]
+          | Type String
+
 eval :: [(Token,String,Token)]
      -> [Library]
      -> Maybe Token
