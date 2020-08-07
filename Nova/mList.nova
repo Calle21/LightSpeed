@@ -4,10 +4,10 @@ struct MCons E
 
 union MList E = MCons E | Void
 
-Void (E elt) : (Ref MList E r)
+Void (E elt) \: (Ref MList E r)
   ls := mCons (elt, read r)
 
-MList E (E elt) : (MList E rest)
+MList E (E elt) \: (MList E rest)
   mCons (elt, rest)
 
 Void (Ref Mlist E r) ++ (MList E ls)

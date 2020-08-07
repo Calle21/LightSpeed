@@ -4,7 +4,7 @@ struct Cons E
 
 union List E = Cons E, Void
 
-Cons E (E elt) : ({E} rest)
+Cons E (E elt) \: ({E} rest)
   cons (elt, rest)
 
 infixr {E} ({E} a) ++ ({E} b)

@@ -15,6 +15,7 @@ data Lex = EOF
          | LexName String
          | LexOp String
          | LexString String
+         | LexPipe
          | LexPunct Char
          | SetCol Int
          | SetFileName String
@@ -42,6 +43,7 @@ lex' (filename, inp) = SetFileName filename : lexLines 1 1 inp
                                                   | capSyntax ts     = LexCap ts
                                                   | allCapSyntax ts  = LexAll ts
                                                   | charSyntax ts    = LexChar $ getChar' $ tail ts
+                                                  | pipeSyntax ts    = LexPipe
                                                   | loopSyntax ts    = LexLoop $ tail ts
                                                   | nameOpSyntax ts  = LexOp $ init $ tail ts
                                                   | hashSyntax ts    = LexHash $ read $ tail ts
@@ -151,7 +153,10 @@ allCapSyntax :: String -> Bool
 allCapSyntax s = s =~ "^[A-Z]+$"
 
 charSyntax :: String -> Bool
-charSyntax s = s =~ "^\\\\([^ \\n\\t]|space|newline|tab|nul|[0-9]{3})$"
+charSyntax s = s =~ "^\\\\([^ \\n\\t\\x00]|space|newline|tab|nul|[0-9]{3})$"
+
+pipeSyntax :: String -> Bool
+pipeSyntax s = s == "\\\\|"
 
 loopSyntax :: String -> Bool
 loopSyntax s = s =~ "^@[0-9]*[a-z][a-zA-Z0-9]*$"

@@ -5,7 +5,7 @@ import Interpret (Desc(..))
 import Lex (Lex(..))
 
 data Top = TopClass [Class] String [String] [Field]
-         | TopDef [String] BindPat Expr
+         | TopBind [String] BindPat Expr
          | TopEnum String [String] [String]
          | TopStruct [Class] String [String] [Field]
          | TopSynonym String [String] Type
@@ -16,90 +16,99 @@ data Top = TopClass [Class] String [String] [Field]
 
 type TopReader = Int -> FilePath -> [Lex] -> (Top,Int,Lex)
 
-readSynonym :: TopReader
-readSynonym ln filename xs = let (nm,xs0)     = readCap ln filename xs
-                                 (vars,xs1)   = readVars ln filename xs0
-                                 xs2          = readEquals ln filename xs1
-                                 (tp,ln3,xs3) = readAType ln filename xs2
-                             in (TopSynonym nm vars tp,ln3,xs3)
-
-readType :: TopReader
-readType ln filename xs = let (nm,xs0)     = readCap ln filename xs
-                              (vars,xs1)   = readVars ln filename xs0
-                              xs2          = readEquals ln filename xs1
-                              (tp,ln3,xs3) = readAType ln filename xs2
-                          in (TopType nm vars tp,ln3,xs3)
-
-readStruct :: TopReader
-readStruct ln filename xs = let (classes,ln0,xs0) = readClasses ln filename xs
-                                (nm,xs1)          = readCap ln0 filename xs0
-                                (vars,xs2)        = readVars ln0 filename xs1
-                                (fields,ln3,xs3)  = readFields ln0 filename xs2
-                            in (TopStruct classes nm vars fields,ln3,xs3)
-
-readUnion :: TopReader
-readUnion ln filename xs = let (nm,xs0)     = readCap ln filename xs
-                               (vars,xs1)   = readVars ln filename xs0
-                               xs2          = readEquals ln filename xs1
-                               (ls,ln3,xs3) = readList listType ln filename xs2
-                           in if length ls < 2 then error' ln filename "Less than two members in union"
-                              else (TopUnion nm vars $ map listExtractType ls,ln3,xs3)
-
-readEnum :: TopReader
-readEnum ln filename xs = let (nm,xs0)     = readCap ln filename xs
-                              (vars,xs1)   = readVars ln filename xs0
-                              xs2          = readEquals ln filename xs1
-                              (ls,ln3,xs3) = readList listName ln filename xs2
-                          in (TopEnum nm vars $ map listExtractName ls,ln3,xs3)
-
-readClass :: TopReader
-readClass ln filename xs = let (inherit,ln0,xs0) = readClasses ln filename xs
-                               (nm,xs1)          = readCap ln0 filename xs0
-                               (vars,xs2)        = readVars ln0 filename xs1
-                               (fields,ln3,xs3)  = readFields ln0 filename xs2
-                           in (TopClass inherit nm vars fields,ln3,xs3)
-
-readUse :: TopReader
-readUse ln filename xs = let (ls,ln0,xs0) = readList listLibName ln filename xs
-                         in (TopUse $ map listExtractName ls,ln0,xs0)
-
-readDef :: TopReader
-readDef ln filename xs =
-  let (keywords,xs0)    = getKeywords ln filename xs
-      (bindpat,ln1,xs1) = readBindPat ln filename xs0
-      (exp,ln2,xs2)     = case get xs1 of
-                            (_,Keyword "=",xs2) -> readExpr Norm (Left 0) ln1 filename xs2
-                            (_,SetLine ln2,xs2) -> readExpr Norm (Left 1) ln2 filename xs2
-                            _                   -> error' ln1 filename "Expected equals sign or newline"
-  in (TopDef bindpat exp,ln2,xs2)
-
 data Expr = ExprArray [Expr]
-          | ExprAs String Expr
-          | ExprFrom String Expr
-          | ExprFromTo Expr Expr
-          | ExprFromThenTo Expr Expr Expr
           | ExprArrayFromTo Expr Expr
           | ExprArrayFromThenTo Expr Expr Expr
+          | ExprArraySeqBuild ...
+          | ExprAs String Expr
+          | ExprChar Char
+          | ExprDefault
+          | ExprDoUntil Expr Expr
+          | ExprDoWhile Expr Expr
+          | ExprEach [(BindPat,Expr)] Expr
+          | ExprFor String Int Int Expr
+          | ExprFrom String Expr
+          | ExprFromThenTo Expr Expr Expr
+          | ExprFromTo Expr Expr
           | ExprFuncall Expr Expr
-          | ExprLambda Type BindPat Expr
+          | ExprHash Int
           | ExprIf Expr Expr Expr
           | ExprInfixCalls [String] [Expr]
           | ExprInt Int64
-          | ExprLet [BindPat] [Expr] Expr
+          | ExprLambda Type BindPat Expr
+          | ExprLet [(BindPat,Expr)] Expr
           | ExprList [Expr]
           | ExprLoop String Type BindPat Expr
           | ExprModify Expr [(Expr,Expr)]
           | ExprPure Expr
           | ExprSeq [Expr]
+          | ExprSeqBuild ...
+          | ExprStatement [Expr]
+          | ExprString String
           | ExprSwitch Expr [(Expr,Expr)]
           | ExprTCase Expr [(Type,Expr)]
           | ExprThe Type Expr
           | ExprTuple [Expr]
+          | ExprTypeSeqBuild ...
+          | ExprUntil Expr Expr
+          | ExprWhile Expr Expr
           deriving (Show)
 
 type ExprReader = Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
 
-data ReadMode = Norm | Delimiter | SeqBuild
+readExpr :: ReadMode -> Either Int Int -> ExprReader
+readExpr mode indent ln filename xs = 
+  let c = getCol xs
+  in if goodIndent c
+     then let (exps,ln0,xs0) = readStatements mode c ln filename xs
+          in (mkSeq exps,ln0,xs0
+     else error' ln filename "Bad indentation"
+  where
+  getCol :: [Lex] -> Int
+  getCol (SetCol c:_) = c
+  getCol _            = error ln filename "Expected expression"
+  goodIndent :: Int -> Bool
+  goodIndent c = case indent of
+                   Left c'  -> c > c'
+                   Right c' -> c == c'
+  mkSeq :: [Expr] -> Expr
+  mkSeq [x] = x
+  mkSeq xs  = ExprSeq xs
+
+readStatements :: ReadMode -> Int -> Int -> FilePath -> [Lex] -> ([Expr],Int,[Lex])
+raedStatements mode indent ln filename xs =
+  let (state,ln0,xs0) = readStatement mode ln filename xs
+  in case get xs0 of
+       (_,SetLine ln1,xs1)  -> if mode == Norm && getCol xs1 == indent
+                               then let (rest,ln2,xs2) = readStatements mode indent ln1 filename xs1
+                                    in (state : rest,ln2,xs2)
+                               else ([state],ln0,xs0)
+       (_,Keyword ">>",xs1) -> let (rest,ln2,xs2) = readStatements mode indent ln0 filename xs1
+                               in (state : rest,ln2,xs2)
+       _                    -> ([state],ln0,xs0)
+
+readStatement :: ReadMode -> ExprReader
+readStatement mode ln filename xs = let (subs,ln0,xs0) = readSubs mode ln filename xs
+                                    in if null subs then error "Expected sub-expressions"
+                                       else (ExprStatement subs,ln0,xs0)
+
+readSubs :: ReadMode -> Int -> FilePath -> [Lex] -> ([Expr],Int,[Lex])
+readSubs mode ln filename xs = let (s0,ln0,xs0) = readSub mode ln filename xs
+                               in case s0 of
+                                    Nothing  -> ([],ln0,xs0)
+                                    Just s0' -> let (rest,ln1,xs1) = readSubs mode ln0 filename xs0
+                                                in (s0 : rest,ln1,xs1)
+
+readSub :: ReadMode -> Int -> FilePath -> [Lex] -> (Maybe Expr,Int,[Lex])
+readSub mode ln filename xs = let (a,ln0,xs0) = readAtom ln filename xs
+                              in case a of
+                                   Nothing     -> (a,ln0,xs0)
+                                   Just (Op _) -> (a,ln0,xs0)
+                                   Just a'     -> let (a0,ln1,xs1) = readAtom ln0 filename xs0
+                                                  in case a0 of
+                                                       Nothing     -> (a,ln1,xs1)
+                                                       Just (Op _) -> (a,ln0,xs0)
+                                                       Just a0'    -> (ExprFuncall a' a0',ln1,xs1)
 
 data Type = TypeAny
           | TypeArray Type
@@ -114,51 +123,8 @@ data Type = TypeAny
           | TypeVar String
           deriving (Show)
 
-readAType :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
-readAType ln filename xs
-  | comesType xs = let (mems,ln0,xs0) = readTypeMembers ln filename xs
-                       tp | length mems == 1 = head mems
-                          | otherwise        = UN mems
-                   in (tp,ln0,xs0)
-  | otherwise    = (DR,ln,xs)
-
-readTypeSubSub :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
-readTypeSubSub ln filename xs =
-  case get xs of
-    (_,Cap name,xs0)    -> let (arg,ln1,xs1) | comesType xs0 = readTypeSubSub ln xs0
-                                             | otherwise     = (TU [],ln,xs0)
-                               args = tList arg
-                           in (NM name args,ln1,xs1)
-    (_,LexAll s,xs0)    -> (TypeVar s,ln,xs0)
-    (_,Punct '(',xs0)   -> let (tps,ln1,xs1) = readDelimiter ')' readType ln filename xs0
-                           in (TU tps,ln1,xs1)
-    (_,Punct '[',xs0)   -> let (tp,ln1,xs1) = readType ln filename xs0
-                               (ln2,xs2)    = readEndSquare ln1 filename xs1
-                           in (NM "Array" [tp], ln2, xs2)
-    (_,Punct '{',xs0)   -> let (tp,ln1,xs1) = readType ln filename xs0
-                               (ln2,xs2)    = readEndBracket ln1 filename xs1
-                           in (NM "List" [tp],ln2,xs2)
-    _                   -> error' ln filename "Expected a type"
-
-readTypeSub :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
-readTypeSub ln filename xs =
-  let (t0,ln0,xs0) = readTypeSubSub ln filename xs
-  in case get xs of
-       (_,Keyword "<-",xs1) -> let (t1,ln2,xs2) = readTypeSub ln0 filename xs1
-                               in (FN t0 t1,ln2,xs2)
-       (_,Keyword "<<",xs1) -> let (t1,ln2,xs2) = readTypeSub ln0 filename xs1
-                               in (AC t0 t1,ln2,xs2)
-       _                    -> (t0,ln,xs)
-
-readTypeMembers :: Int -> FilePath -> [Lex] -> ([Type], Int, [Lex])
-readTypeMembers ln filename xs =
-  let (t0,ln0,xs0) = readTypeSub ln filename xs
-  in case get xs0 of
-       (_,Op "|",xs1) -> let (rest,ln2,xs2) = readTypeMembers ln0 filename xs1
-                         in (t0 : rest,ln2,xs2)
-       _              -> ([t0],ln,xs)
-
 data BindPat = BindSimple Type String
+             | BindLambda Type BindPat
              | BindProcedure Type String BindPat
              | BindTuple [BindPat] (Maybe String)
              | BindArray [BindPat] (Maybe String)
@@ -171,47 +137,9 @@ data BindPat = BindSimple Type String
              | BindVoid
              deriving (Show)
 
-readBindpat :: Int -> FilePath -> [Lex] -> (Bindpat,Int,[Lex])
-readBindpat ln filename xs = let (bindpats,ln0,xs0) = readBindpatTokens ln filename xs
-                             in (compileBindpat bindpats,ln0,xs0)
-  where
-  compileBindpat :: [Bindpat] -> Bindpat
-  compileBindpat ps =
-    case ps of
-      
-
-readBindpatTokens :: Int -> FilePath -> [Lex] -> ([Bindpat],Int,[Lex])
-readBindpatTokens ln filename xs = let (t0,ln0,xs0) = readBindpatToken
-                                   in case t0 of
-                                        Just t0' -> let (rest,ln1,xs1) = readBindpatTokens ln0 filename xs
-                                                    in (t0' : rest,ln1,xs1)
-                                        Nothing  -> ([],ln0,xs0)
-  where
-  readBindpatToken :: (Maybe Bindpat,Int,[Lex])
-  readBindpatToken =
-    | comesType xs = let (t,ln0,xs0) = readAType ln filename xs
-                     in (Just $ BindType t,ln0,xs0)
-    | otherwise    = case get xs of
-                       (_,LexKeyword "_",xs0) -> (Just BindIgnore,ln,xs0)
-                       (_,LexName s,xs0)      -> (Just $ BindName s,ln,xs0)
-                       (_,LexChar ':',xs0)    -> (Just $ BindOp ":",ln,xs0)
-                       (_,LexOp ":",xs0)      -> (Just BindCons,ln,xs0)
-                       (_,LexOp s,xs0)        -> (Just $ BindOp s,ln,xs0)
-                       (_,Punct '(',xs0)      -> let (ds,ln1,xs1) = readDelimiter ')' delimiterBindpats ln filename xs0
-                                                 in (Just $ BindTuple (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
-                       (_,Punct '[',xs0)      -> let (ds,ln1,xs1) = readDelimiter ']' delimiterBindpats ln filename xs0
-                                                 in (Just $ BindArray (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
-                       (_,Punct '{',xs0)      -> let (ds,ln1,xs1) = readDelimiter '}' delimiterBindpats ln filename xs0
-                                                 in (Just $ BindList (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
-                       _                      -> (Nothing,ln,xs)
-
-type Class = (String,[Type])
-
-data Field = Field Type String (Maybe Expr)
-
 data DelimiterExpr = DelimiterExpr Expr
                    | DelimiterType Type
-                   | DelimiterParam BindPat Expr
+                   | DelimiterParam Param
                    | DelimiterModifier Expr Expr
                    | DelimiterField Field
                    | DelimiterAll String
@@ -286,6 +214,20 @@ listLibName ln filename xs = let (s,xs0) = readLibName
     where
     goError = error' ln filename "Expected a library name"
 
+data CondExpr = CondType Type
+              | CondBindPat BindPat
+              | CondExpr Expr
+
+type CondReader = Int -> FilePath -> [Lex] -> (CondExpr,Int,[Lex])
+
+type Class = (String,[Type])
+
+data Field = Field Type String (Maybe Expr)
+
+data Param = Param BindPat (Maybe Expr)
+
+data ReadMode = Norm | Delimiter | SeqBuild
+
 parse :: [Lex] -> [Top]
 parse xs = case xs of
               (SetFileName s:xs0) -> recTop 1 s xs0
@@ -311,7 +253,50 @@ parseTop ln filename xs =
     (1,Keyword "enum",xs0)    -> readEnum ln filename xs0
     (1,Keyword "class",xs0)   -> readClass ln filename xs0
     (1,Keyword "use",xs0)     -> readUse ln filename xs0
-    _                         -> readDef ln filename xs
+    _                         -> readBind ln filename xs
+
+readSynonym :: TopReader
+readSynonym ln filename xs = let (nm,xs0)     = readCap ln filename xs
+                                 (vars,xs1)   = readVars ln filename xs0
+                                 xs2          = readEquals ln filename xs1
+                                 (tp,ln3,xs3) = readAType ln filename xs2
+                             in (TopSynonym nm vars tp,ln3,xs3)
+
+readType :: TopReader
+readType ln filename xs = let (nm,xs0)     = readCap ln filename xs
+                              (vars,xs1)   = readVars ln filename xs0
+                              xs2          = readEquals ln filename xs1
+                              (tp,ln3,xs3) = readAType ln filename xs2
+                          in (TopType nm vars tp,ln3,xs3)
+
+readStruct :: TopReader
+readStruct ln filename xs = let (classes,ln0,xs0) = readClasses ln filename xs
+                                (nm,xs1)          = readCap ln0 filename xs0
+                                (vars,xs2)        = readVars ln0 filename xs1
+                                (fields,ln3,xs3)  = readFields ln0 filename xs2
+                            in (TopStruct classes nm vars fields,ln3,xs3)
+
+readUnion :: TopReader
+readUnion ln filename xs = let (nm,xs0)     = readCap ln filename xs
+                               (vars,xs1)   = readVars ln filename xs0
+                               xs2          = readEquals ln filename xs1
+                               (ls,ln3,xs3) = readList listType ln filename xs2
+                           in if length ls < 2 then error' ln filename "Less than two members in union"
+                              else (TopUnion nm vars $ map listExtractType ls,ln3,xs3)
+
+readEnum :: TopReader
+readEnum ln filename xs = let (nm,xs0)     = readCap ln filename xs
+                              (vars,xs1)   = readVars ln filename xs0
+                              xs2          = readEquals ln filename xs1
+                              (ls,ln3,xs3) = readList listName ln filename xs2
+                          in (TopEnum nm vars $ map listExtractName ls,ln3,xs3)
+
+readClass :: TopReader
+readClass ln filename xs = let (inherit,ln0,xs0) = readClasses ln filename xs
+                               (nm,xs1)          = readCap ln0 filename xs0
+                               (vars,xs2)        = readVars ln0 filename xs1
+                               (fields,ln3,xs3)  = readFields ln0 filename xs2
+                           in (TopClass inherit nm vars fields,ln3,xs3)
 
 readVars :: Int -> FilePath -> [Lex] -> ([String],[Lex])
 readVars ln filename xs = case get xs of
@@ -366,6 +351,62 @@ readList fn ln filename xs = let (e0,ln0,xs0) = fn ln filename xs
                                                        in (e0 : rest,ln2,xs2)
                                   _                 -> ([e0],ln0,xs0)
 
+readUse :: TopReader
+readUse ln filename xs = let (ls,ln0,xs0) = readList listLibName ln filename xs
+                         in (TopUse $ map listExtractName ls,ln0,xs0)
+
+readBind :: TopReader
+readBind ln filename xs =
+  let (keywords,xs0)    = getKeywords xs
+      (bindpat,ln1,xs1) = readBindpat ln filename xs0
+      (exp,ln2,xs2)     = case get xs1 of
+                            (_,Keyword "=",xs2) -> readExpr Norm (Left 0) ln1 filename xs2
+                            (_,SetLine ln2,xs2) -> readExpr Norm (Left 1) ln2 filename xs2
+                            _                   -> error' ln1 filename "Expected equals sign or newline"
+  in (TopBind keywords bindpat exp,ln2,xs2)
+  where
+  getKeywords :: [Lex] -> ([String],[Lex])
+  getKeywords xs = case get xs of
+                     (_,LexKeyword s,xs0) -> if s `elem` ["infixl","infixr","local","parallel"]
+                                             then let (rest,xs1) = getKeywords xs0
+                                                  in (s : rest,xs1)
+                                             else ([],xs)
+                     _                    -> ([],xs)
+
+readBindpat :: Int -> FilePath -> [Lex] -> (Bindpat,Int,[Lex])
+readBindpat ln filename xs = let (bindpats,ln0,xs0) = readBindpatTokens ln filename xs
+                             in (compileBindpat bindpats,ln0,xs0)
+  where
+  compileBindpat :: [Bindpat] -> Bindpat
+  compileBindpat ps =
+    case ps of
+      
+
+readBindpatTokens :: Int -> FilePath -> [Lex] -> ([Bindpat],Int,[Lex])
+readBindpatTokens ln filename xs = let (t0,ln0,xs0) = readBindpatToken
+                                   in case t0 of
+                                        Just t0' -> let (rest,ln1,xs1) = readBindpatTokens ln0 filename xs
+                                                    in (t0' : rest,ln1,xs1)
+                                        Nothing  -> ([],ln0,xs0)
+  where
+  readBindpatToken :: (Maybe Bindpat,Int,[Lex])
+  readBindpatToken =
+    | comesType xs = let (t,ln0,xs0) = readAType ln filename xs
+                     in (Just $ BindType t,ln0,xs0)
+    | otherwise    = case get xs of
+                       (_,LexKeyword "_",xs0) -> (Just BindIgnore,ln,xs0)
+                       (_,LexName s,xs0)      -> (Just $ BindName s,ln,xs0)
+                       (_,LexChar ':',xs0)    -> (Just $ BindOp ":",ln,xs0)
+                       (_,LexOp ":",xs0)      -> (Just BindCons,ln,xs0)
+                       (_,LexOp s,xs0)        -> (Just $ BindOp s,ln,xs0)
+                       (_,Punct '(',xs0)      -> let (ds,ln1,xs1) = readDelimiter ')' delimiterBindpats ln filename xs0
+                                                 in (Just $ BindTuple (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
+                       (_,Punct '[',xs0)      -> let (ds,ln1,xs1) = readDelimiter ']' delimiterBindpats ln filename xs0
+                                                 in (Just $ BindArray (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
+                       (_,Punct '{',xs0)      -> let (ds,ln1,xs1) = readDelimiter '}' delimiterBindpats ln filename xs0
+                                                 in (Just $ BindList (map delimiterExtractBindpats ds) Nothing,ln1,xs1)
+                       _                      -> (Nothing,ln,xs)
+
 readTypeArgs :: Int -> FilePath -> [Lex] -> ([Type],Int,[Lex])
 readTypeArgs ln filename xs =
   case get xs of
@@ -377,53 +418,19 @@ readTypeArgs ln filename xs =
                               in ([tp],ln0,xs0)
                          else ([],ln,xs)
 
-getKeywords :: Int -> FilePath -> [Lex] -> ([String],[Lex])
-getKeywords ln filename xs = case get xs of
-                               (_,LexKeyword s,xs0) -> if s `elem` ["infixl","infixr","local","parallel"]
-                                                       then let (rest,xs1) = getKeywords ln filename xs0
-                                                            in (s : rest,xs1)
-                                                       else ([],xs)
-                               _                    -> ([],xs)
-
-readTopInfix :: Int -> FilePath -> [Token] -> (Token,Maybe [Token],Int,[Token])
-readTopInfix ln filename xs =
-  let (rt,ln0,xs0)      = readType ln filename xs
-      xs1               = readOpenParen ln filename xs0
-      (params1,ln2,xs2) = readDelimiter ')' readParam ln0 filename xs1
-      (name,xs3)        = readOp ln2 filename xs2
-      xs4               = readOpenParen ln2 filename xs3
-      (params2,ln5,xs5) = readDelimiter ')' readParam ln2 filename xs4
-  in (Typed rt name
-     ,Just $ params1 ++ params2
-     ,ln5
-     ,xs5)
-
-readTopNorm :: Int -> FilePath -> [Token] -> (Token,Maybe [Token],Int,[Token])
-readTopNorm ln filename xs =
-  let (pat,ln0,xs0)    = readSub ln filename xs
-      (params,ln1,xs1) = readParams ln0 filename xs0
-  in (pat,params,ln1,xs1)
-
-comesTopBinding :: [Token] -> Bool
-comesTopBinding xs = case get xs of
-                       (1,Cap _,_)     -> True
-                       (1,Keyword k,_) -> k `elem` topKeywords
-                       (1,Punct p, _)  -> p `elem` ['(','[','{']
-                       _               -> False
-
 skipOver :: Char -> Int -> FilePath -> [Lex] -> (Int, [Lex])
 skipOver p ln filename xs = case get xs of
-                     (_,Punct '(',xs0)   -> let (ln1,xs1) = skipOver ')' ln filename xs0
-                                            in skipOver ln1 p xs1
-                     (_,Punct '[',xs0)   -> let (ln1,xs1) = skipOver ']' ln filename xs0
-                                            in skipOver ln1 p xs1
-                     (_,Punct '{',xs0)   -> let (ln1,xs1) = skipOver '}' ln filename xs0
-                                            in skipOver p ln filename xs1
-                     (_,Punct p0,xs0)    -> if p0 == p
-                                            then (ln,xs0)
-                                            else skipOver p ln filename xs0
-                     (_,SetLine ln0,xs0) -> skipOver p ln0 filename xs0
-                     (_,EOF,_)           -> error' ln filename "End of file within delimiter"
+                              (_,Punct '(',xs0)   -> let (ln1,xs1) = skipOver ')' ln filename xs0
+                                                     in skipOver ln1 p xs1
+                              (_,Punct '[',xs0)   -> let (ln1,xs1) = skipOver ']' ln filename xs0
+                                                     in skipOver ln1 p xs1
+                              (_,Punct '{',xs0)   -> let (ln1,xs1) = skipOver '}' ln filename xs0
+                                                     in skipOver p ln filename xs1
+                              (_,Punct p0,xs0)    -> if p0 == p
+                                                     then (ln,xs0)
+                                                     else skipOver p ln filename xs0
+                              (_,SetLine ln0,xs0) -> skipOver p ln0 filename xs0
+                              (_,EOF,_)           -> error' ln filename "End of file within delimiter"
 
 readCloseParen :: Int -> FilePath -> [Lex] -> [Lex]
 readCloseParen ln filename xs = case get xs of
@@ -435,173 +442,44 @@ readOp ln filename xs = case get xs of
                           (_,Op s,xs0) -> (s,xs0)
                           _            -> error' ln filename "Expected an operator name"
 
-readParams :: Int -> FilePath -> [Lex] -> (Maybe [],Int,[Lex])
-readParams ln filename xs =
-  case get xs of
-    (_,Keyword "=",_) = (Nothing,ln,xs)
-    (_,SetLine _,_)   = (Nothing,ln,xs)
-    (_,Punct '(',xs0) = let (params,ln1,xs1) = readDelimiter ')' readParam ln filename xs0
-                        in (Just params, ln1, xs1)
-    _                 = error' ln filename "Expected equals sign, newline or parameter list"
-
-readParam :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readParam ln filename xs =
-  let (tp,ln0,xs0) = readType ln filename xs
-      (nm,ln1,xs1) = readName ln0 filename xs0
-      (def,ln2,xs2) = readDefault ln1 xs1
-  in (Param tp nm def,ln1,xs1)
-  where
-  readDefault :: Int -> [Lex] -> (Maybe Expr,Int,[Lex])
-  readDefault ln xs = case get xs of
-                        (_,Keyword "=",xs0) -> let (t,ln1,xs1) = readExpr Norm (Left 0) ln filename xs0
-                                               in (Just t,ln1,xs1)
-                        _                   -> (Nothing,ln,xs)
-
-readLambda :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readLambda indent ln filename xs =
-  let (rt,ln0,xs0)     = readType ln filename xs
-      (ln1,xs1)        = readOpenParen ln0 filename xs0
-      (params,ln2,xs2) = readDelimiter ')' readParam ln1 filename xs1
-      (body,ln3,xs3)   = case get xs2 of
-                           (_,Keyword "->",xs3) -> readExpr Norm (Left 0) ln2 filename xs3
-                           (_,SetLine _,xs3)    -> readExpr Norm (Left indent) ln2 filename xs3
-                           _                    -> error' ln2 filename "Expected arrow or newline"
-  in (Function rt params body, ln3, xs3)
-
-comesEquals :: Int -> FilePath -> [Lex] -> Bool
-comesEquals ln filename xs = case get xs of
-                               (_,Keyword "=",_) -> True
-                               (_,Punct '(',xs0) -> let (ln1,xs1) = skipOver ')' ln filename xs0
-                                                    in comesEquals ln1 filename xs1
-                               (_,Punct '[',xs0) -> let (ln1,xs1) = skipOver ']' ln filename xs0
-                                                    in comesEquals ln1 filename xs1
-                               (_,Punct '{',xs0) -> let (ln1,xs1) = skipOver '}' ln filename xs0
-                                                    in comesEquals ln1 filename xs1
-                               (_,SetLine _,_)   -> False
-                               (_,Keyword _,_)   -> False
-                               (_,EOF,_)         -> False
-
-readSub :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readSub ln filename xs =
-  if comesType ln filename xs
-  then let (tps,nms,vals,ln0,xs0) = readBinding ln filename xs
-           (ln1,xs1)              = readNewline ln0 filename xs0
-           (indent,_,_)           = get xs
-           (rest,ln2,xs2)         = readExpr Norm (Right indent) ln1 filename xs1
-       in (Let (transformLet (tps,nms,vals)) rest, ln2, xs2)
-  else let (c,t,xs0) = get xs
-       in case t of
-            Keyword "lambda"  -> readLambda c ln filename xs0
-            Keyword "case"    -> readCase c ln filename xs0
-            Keyword "tcase"   -> readTCase c ln filename xs0
-            Keyword "switch"  -> readSwitch c ln filename xs0
-            Keyword "range"   -> readRange c ln filename xs0
-            Keyword "modify"  -> readModifyDestroy Modify c ln filename xs0
-            Keyword "destroy" -> readModifyDestroy Destroy c ln filename xs0
-            Keyword "pure"    -> readPure ln filename xs0
-            Keyword "match"   -> readMatch c ln filename xs0
-            Access _ _        -> (t,ln,xs0)
-            Char _            -> (t,ln,xs0)
-            Float _           -> (t,ln,xs0)
-            Int _             -> (t,ln,xs0)
-            Keyword "_"       -> (t,ln,xs0)
-            Name _            -> (t,ln,xs0)
-            String _          -> (t,ln,xs0)
-            Hash _            -> (t,ln,xs0)
-            Punct '\''        -> let (exp,ln1,xs1) = readSub ln filename xs0
-                                 in (mkFuncall (mkName "quote") exp,ln1,xs1)
-            Punct '('         -> let (exps,ln1,xs1) = readDelimiter ')'
-                                                                    (readExpr Delimiter (Left 0))
-                                                                    ln
-                                                                    filename
-                                                                    xs0
-                                 in (Tuple exps, ln1, xs1)
-            Punct '['         -> let (exps,ln1,xs1) = readDelimiter ']'
-                                                                    (readExpr Delimiter (Left 0))
-                                                                    ln
-                                                                    filename
-                                                                    xs0
-                                 in (Array [length exps] exps, ln1, xs1)
-            Punct '{'         -> readList c ln filename xs0
-            Loop name         -> readLoop name c ln filename xs0
-            _                 -> error' ln filename "Expected sub-expression"
-
-comesPipe :: Int -> Int -> [Lex] -> Bool
-comesPipe indent ln xs = case get xs of
-                           (_,Op "|",_)      -> True
-                           (_,Punct '}',_)   -> False
-                           (_,Punct '(',xs0) -> let (ln1,xs1) = skipOver ln ')' xs0
-                                                in comesPipe indent ln1 xs1
-                           (_,Punct '[',xs0) -> let (ln1,xs1) = skipOver ln ']' xs0
-                                                in comesPipe indent ln1 xs1
-                           (_,Punct '{',xs0) -> let (ln1,xs1) = skipOver ln '}' xs0
-                                                in comesPipe indent ln1 xs1
-                           (_,EOF,_)         -> False
-                           (_,SetLine _,xs0) -> case get xs0 of
-                                                  (c,Op "|",_) -> c == indent
-                                                  _            -> False
-                           (_,Punct ',',_)   -> False
-                           (_,_,xs0)         -> comesPipe xs0
+comesPipe :: Int -> Int -> FilePath -> [Lex] -> Bool
+comesPipe indent ln filename xs = case get xs of
+                                    (_,Op "|",_)      -> True
+                                    (_,Punct '(',xs0) -> let (ln1,xs1) = skipOver ln ')' xs0
+                                                         in comesPipe indent ln1 xs1
+                                    (_,Punct '[',xs0) -> let (ln1,xs1) = skipOver ln ']' xs0
+                                                         in comesPipe indent ln1 xs1
+                                    (_,Punct '{',xs0) -> let (ln1,xs1) = skipOver ln '}' xs0
+                                                         in comesPipe indent ln1 xs1
+                                    (_,Punct p,xs0)   -> if p `elem` punctTerminators then False
+                                                         else comesPipe indent ln filename xs0
+                                    (_,EOF,_)         -> error' ln filename "File ended in delimiter"
+                                    (_,SetLine _,xs0) -> case get xs0 of
+                                                           (c,Op "|",_) -> c == indent
+                                                           _            -> False
+                                    (_,_,xs0)         -> comesPipe indent ln filename xs0
 
 readList :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
 readList indent ln filename xs
-  | comesPipe indent ln xs = let (exp,ln0,xs0) = readExpr SeqBuild ln filename xs
-                             in case get xs0 of
-                                  (_,Op "|",xs1)      -> let (vars,ln2,xs2) = readSBVars 0 ln0 filename xs1
-                                                             xs3            = readEndBracket ln2 filename xs2
-                                                         in (makeSB exp vars, ln2, xs3)
-                                  (_,SetLine ln1,xs1) -> let (vars,ln2,xs2) = readSBVars indent ln1 filename xs1
-                                                             xs3            = readEndBracket ln2 filename xs1
-                                                         in (makeSB exp vars, ln2, xs3)
-                                  _                   -> error' ln0 filename "Expected a pipe"
-  | otherwise              = let (exps,ln1,xs1) = readDelimiter '}'
-                                                                (readExpr Delimiter (Left 0))
-                                                                ln
-                                                                filename
-                                                                xs0
-                             in (makeList exps, ln1, xs1)
+  | comesPipe indent ln filename xs =
+      let (exp,ln0,xs0) = readExpr SeqBuild ln filename xs
+      in case get xs0 of
+           (_,Op "|",xs1)      -> let (vars,ln2,xs2) = readSBVars 0 ln0 filename xs1
+                                      xs3            = readEndBracket ln2 filename xs2
+                                  in (makeSB exp vars, ln2, xs3)
+           (_,SetLine ln1,xs1) -> let (vars,ln2,xs2) = readSBVars indent ln1 filename xs1
+                                      xs3            = readEndBracket ln2 filename xs1
+                                  in (makeSB exp vars, ln2, xs3)
+           _                   -> error' ln0 filename "Expected a pipe"
+  | otherwise = let (exps,ln1,xs1) = readDelimiter '}'
+                                                   (readExpr Delimiter (Left 0))
+                                                   ln
+                                                   filename
+                                                   xs0
+                in (makeList exps, ln1, xs1)
 
 readSBVars :: Int -> Int -> FilePath -> [Lex] -> ((),Int,[Lex])
 readSBVars indent ln filename xs =
-
-readMatch :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readMatch indent ln filename xs =
-  let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
-      (cl,ln1,xs1)  = readClauses readSub "->" ln0 filename xs0
-  in (makeMatch exp cl,ln1,xs1)
-
-makeMatch :: Expr -> [(Expr,Expr)] -> Expr
-makeMatch exp cl =
-
-readPure :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readPure ln filename xs =
-  let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
-  in (Pure exp,ln0,xs0)
-
-readModify :: -> Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readModify indent ln filename xs =
-  let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
-      (cl,ln1,xs1)  = readCl ln0 xs0
-  in ( exp cl, ln1, xs1)
-  where
-  readCl :: Int -> [Lex] -> ([(Expr,Expr)], Int, [Lex])
-  readCl ln xs =
-    case get xs of
-      (_,Punct '(',xs0) -> let (mods,ln1,xs1) = readDelimiter ')' readModifier ln filename xs0
-                               mods'          = transformModifier mods
-                           in (mods',ln1,xs1)
-      _                 -> let (mods,_,ln0,xs0) = readClauses False 
-                                                              (readClause False readSub "=")
-                                                              []
-                                                              indent
-                                                              ln
-                                                              filename
-                                                              xs
-                           in (mods,ln0,xs0)
-      
-transformModifier :: [Expr] -> [(Expr,Expr)]
-transformModifier (Modifier key exp:xs) = (key,exp) : transformModifier xs
-transformModifier []                    = []
 
 readModifier :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
 readModifier ln filename xs =
@@ -610,121 +488,216 @@ readModifier ln filename xs =
       (exp,ln2,xs2) = readExpr Norm (Left 0) ln1 filename xs1
   in (Modifier key exp, ln2, xs2)
 
-readExpr :: ReadMode -> Either Int Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readExpr mode indent ln filename xs = 
-  let (c,_,_) = get xs
-  in if goodIndent c
-     then let (exps,ln0,xs0) = readStatements mode c ln filename xs
-          in (mkSeq exps,ln0,xs0
-     else error' ln filename "Bad indentation"
+readNewlineMaybe :: Int -> [Lex] -> (Int,[Lex])
+readNewlineMaybe ln xs = case get xs of
+                           (_,SetLine ln0,xs0) -> (ln0,xs0)
+                           _                   -> (ln,xs)
+
+readAtom :: Int -> FilePath -> [Lex] -> (Maybe Expr,Int,[Lex])
+readAtom ln filename xs =
+  let (binds,ln0,xs0) = readBinds (getCol xs) ln xs
+  in if null binds
+     then let (c,t,xs1) = get xs0
+              (a0,ln2,xs2) = case t of
+                               LexOp s             -> (Just $ ExprOp s,ln0,xs1)
+                               LexKeyword "case"   -> readCase c ln0 xs1
+                               LexKeyword "do"     -> readDo ln0 xs1
+                               LexKeyword "each"   -> readEach c ln0 xs1
+                               LexKeyword "for"    -> readFor c ln0 xs1
+                               LexKeyword "if"     -> readIf c ln0 xs1
+                               LexKeyword "lambda" -> readLambda c ln0 xs1
+                               LexKeyword "match"  -> readMatch c ln0 xs1
+                               LexKeyword "modify" -> readModify c ln0 xs1
+                               LexKeyword "pure"   -> readPure ln0 xs1
+                               LexKeyword "range"  -> readRange c ln0 xs1
+                               LexKeyword "switch" -> readSwitch c ln0 xs1
+                               LexKeyword "tcase"  -> readTCase c ln0 xs1
+                               LexKeyword "until"  -> readUntil c ln0 xs1
+                               LexKeyword "while"  -> readWhile c ln0 xs1
+                               LexChar c           -> (Just $ ExprChar c,ln0,xs1)
+                               LexInt i            -> (Just $ ExprInt i,ln0,xs1)
+                               LexKeyword "_"      -> (Just ExprDefault,ln0,xs1)
+                               LexName s           -> (Just $ ExprName s,ln0,xs1)
+                               LexString s         -> (Just $ ExprString s,ln0,xs1)
+                               LexHash i           -> (Just $ ExprHash i,ln0,xs1)
+                               Punct '\''          -> let (exp,ln1,xs1) = readSub ln filename xs1
+                                                      in (mkFuncall (mkName "quote") exp,ln1,xs1)
+                               LexPunct '('        -> let (exps,ln2,xs2) = readDelimiter ')'
+                                                                                         (readExpr Delimiter (Left 0))
+                                                                                         ln0
+                                                                                         filename
+                                                                                         xs1
+                                                      in (Just $ ExprTuple exps,ln2,xs2)
+                               LexPunct '['        -> let (exps,ln2,xs2) = readDelimiter ']'
+                                                                                         (readExpr Delimiter (Left 0))
+                                                                                         ln0
+                                                                                         filename
+                                                                                         xs1
+                                                      in (Just $ ExprArray exps,ln2,xs2)
+                               LexPunct '{'        -> let (exps,ln2,xs2) = readDelimiter '}'
+                                                                                         (readExpr Delimiter (Left 0))
+                                                                                         ln0
+                                                                                         filename
+                                                                                         xs1
+                                                      in (Just $ ExprList exps,ln2,xs2)
+                               LexLoop name        -> readLoop name c ln0 xs1
+                               _                   -> (Nothing,ln0,xs0)
+          in case a0 of
+               Nothing  -> (a0,ln2,xs2)
+               Just a0' -> case get xs of
+                             (_,Keyword "as",xs3)   -> readAs exp ln2 xs3
+                             (_,Keyword "from",xs3) -> readFrom exp ln2 xs3
+                             (_,Keyword "the",xs3)  -> readThe exp ln2 xs3
+                             _                      -> (a0,ln2,xs2)
+     else let (exp,ln1,xs1) = readExpr Norm (Right $ getCol xs) ln0 filename xs0
+          in (Let binds exp,ln1,xs1)
   where
-  goodIndent :: Int -> Bool
-  goodIndent c = case indent of
-                   Left c'  -> c > c'
-                   Right c' -> c == c'
-  mkSeq :: [Expr] -> Expr
-  mkSeq []  = error ln filename "Expected an expression"
-  mkSeq [x] = x
-  mkSeq xs  = Seq xs
+  readBinds :: Int -> Int -> [Lex] -> ([(BindPat,Expr)],Int,[Lex])
+  readBinds indent ln xs
+    | getCol xs == indent && comesEquals xs =
+        let (bindpat,ln0,xs0) = readBindpat ln filename xs
+            (ln1,xs1)         = readNewlineMaybe ln0 xs0
+            (exp,ln2,xs2)     = readExpr Norm (Right indent) ln1 filename xs1
+            (rest,ln3,xs3)    = readBinds indent ln2 xs2
+        in ((bindpat,exp) : rest,ln3,xs3)
+    | otherwise      = ([],ln,xs)
+    where
+    comesEquals :: Int -> [Lex] -> Bool
+    comesEquals ln xs = case get xs of
+                          (_,Keyword "=",_) -> True
+                          (_,Punct '(',xs0) -> let (ln1,xs1) = skipOver ')' ln filename xs0
+                                               in comesEquals ln1 xs1
+                          (_,Punct '[',xs0) -> let (ln1,xs1) = skipOver ']' ln filename xs0
+                                               in comesEquals ln1 xs1
+                          (_,Punct '{',xs0) -> let (ln1,xs1) = skipOver '}' ln filename xs0
+                                               in comesEquals ln1 xs1
+                          (_,SetLine _,_)   -> False
+                          (_,Keyword _,_)   -> False
+                          (_,EOF,_)         -> False
+                          (_,_,xs0)         -> comesEquals ln xs0
 
-readStatements :: ReadMode -> Int -> Int -> FilePath -> [Lex] -> ([Expr],Int,[Lex])
-raedStatements mode indent ln filename xs =
-  let (state,ln0,xs0) = readStatement mode ln filename xs
-  in case get xs0 of
-       (_,SetLine ln1,xs1)  -> if mode == Norm
-                               then let (c,_,_) = get xs1
-                                    in if c == indent
-                                       then let (rest,ln2,xs2) = readStatements mode indent ln1 filename xs1
-                                            in (state : rest,ln2,xs2)
-                                       else ([state],ln0,xs0)
-                               else ([state],ln0,xs0)
-       (_,Keyword ">>",xs1) -> let (rest,ln2,xs2) = readStatements mode indent ln0 filename xs1
-                               in (state : rest,ln2,xs2)
-       _                    -> ([state],ln0,xs0)
+  readAs :: Expr -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readAs exp ln xs =
+    let (tp,ln0,xs0) = readType ln filename xs
+    in (Just $ ExprAs tp exp, ln0, xs0)
 
-readStatement :: ReadMode -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readStatement mode ln filename xs =
-  let (s0,ln0,xs0) = readSub ln filename xs
-  in case get xs0 of
-       (_,Op s,xs1) -> if mode == SeqBuild && s == "|"
-                       then (s0,ln0,xs0)
-                       else let (rest,ln2,xs2) = readStatement mode ln0 filename xs1
-                            in (infixConcat s s0 rest,ln2,xs2)
-       _            -> (s0,ln0,xs0
+  readCase :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readCase indent ln xs =
+    let (exp,ln0,xs0) = readExpr 0 (Left 0) ln filename xs
+        (ln1,xs1)     = readNewline ln0 filename xs0
+        (cl,ln1,xs1)  = readClauses indent (readExpr 0 (Left 0)) "->" ln1 filename xs1
+    in (Just $ ExprCase exp cl,ln1,xs1)
 
-infixConcat :: String -> Expr -> Expr -> Expr
-infixConcat s s0 rest = let (ops,subs) = get rest
-                        in InfixCalls (s : ops) (s0 : subs)
-  where
-  get :: Expr -> ([String],[Expr])
-  get (InfixCalls ops subs) = (ops,subs)
-  get sub                   = sub
+  readDo :: Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readDo ln xs =
 
-readSub :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readSub ln filename xs
-  | comesEquals xs =
+  readEach :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readEach indent ln xs =
 
-readPostfix :: Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readPostfix exp ln filename xs =
-  case get xs of
-    (_,Keyword "as",xs0)   -> readAs exp ln filename xs0
-    (_,Keyword "from",xs0) -> readFrom exp ln filename xs0
-    (_,Keyword "the",xs0)  -> readThe exp ln filename xs0
-    (_,Keyword ">>",xs0)   -> let (exp2,ln1,xs1) = readExpr 0 (Left 0) ln filename xs0
-                              in (Seq $ exp : getSeq exp2, ln1, xs1)
-    _                      -> (exp,ln,xs)
+  readFor :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readFor indent ln xs =
 
-getSeq :: Expr -> [Expr]
-getSeq (Seq ts) = ts
-getSeq t        = [t]
+  readFrom :: Expr -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readFrom exp ln xs =
+    let (name,ln0,xs0) = readCap ln filename xs
+    in (Just $ ExprFrom name exp, ln0, xs0)
 
-readThe :: Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readThe exp ln filename xs =
-  let (tp,ln0,xs0) = readType ln filename xs
-  in (The tp exp, ln0, xs0)
+  readIf :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
+  readIf indent ln filename xs =
+    let (cl,ln1,xs1) = readClauses indent (readExpr 0 (Left 0)) "->" ln0 filename (SetLine ln : xs0)
+    in (Just $ ExprIf cl,ln2,xs2)
 
-readExprOp1 :: Int -> Int -> Expr -> String -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readExprOp1 mode indent exp1 s0 ln filename xs =
-  case get xs of
-    (_,SetLine ln0,xs0) -> let (c,_,_) = get xs0
-                           in if c > indent then readExprOp1 mode indent exp1 ln0 filename xs0
-                              else error' ln filename "Expected sub-expression"
-    _                   -> let (exp2,ln0,xs0) = readSub ln filename xs
-                           in readExprOp2 exp1 s0 exp2 ln0 filename xs0
+  readLambda :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readLambda indent ln xs =
+    let (pat,ln0,xs0)    = readBindpat ln filename xs
+        (body,ln1,xs1)   = case get xs0 of
+                             (_,Keyword "->",xs1) -> readExpr Norm (Left 0) ln0 filename xs1
+                             (_,SetLine _,xs1)    -> readExpr Norm (Left indent) ln0 filename xs1
+                             _                    -> error' ln0 filename "Expected arrow or newline"
+    in (Just $ ExprLambda pat body,ln1,xs1)
 
-readExprOp2 :: Int -> Int -> Expr -> String -> Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readExprOp2 mode indent exp1 s0 exp2 ln filename xs =    
-  case get xs of
-    (_,Op s1,xs0)       -> let (exp2',ln0,xs0) = readExprOp1 mode indent exp2 s1 ln filename xs0
-                               (ops,exps)      = getOpsAndExps exp2'
-                           in (InfixCalls (s0 : ops) (exp1 : exps)
-                              ,ln0
-                              ,xs0)
-    (_,Keyword s,_)     -> if s `elem` keywordTerminators
-                           then goTerminate
-                           else goRead
-    (_,Punct p,_)       -> if p `elem` punctTerminators
-                           then goTerminate
-                           else goRead
-    (_,EOF,_)           -> goTerminate
-    _                   -> goRead
-  where
-  goTerminate :: (Expr,Int,[Lex])
-  goTerminate = (InfixCalls [s0] [exp1,exp2])
-                ,ln
-                ,xs)
-  goRead :: (Expr,Int,[Lex])
-  goRead = let (exp2',ln0,xs0) = readExpr1 mode indent exp2 ln filename xs
-           in readExprOp2 mode indent exp1 s0 exp2' ln0 filename xs0
+  readLoop :: String -> Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readLoop name indent ln xs =
+    let (rt,ln0,xs0)   = readType ln filename xs
+        (ln1,xs1)      = readOpenParen ln0 filename xs0
+        (lps,ln2,xs2)  = readDelimiter ')' readLoopParam ln1 filename xs1
+        (ln3,xs3)      = readNewline ln2 filename xs2
+        (body,ln4,xs4) = readExpr [] (Left indent) ln3 filename xs3
+        params         = map loopParamParam lps
+        args           = Tuple $ map loopParamArg lps
+    in (ExprLoop [(makeType params, name, Function params body)]
+            (Funcall name args)
+      , ln4
+      , xs4)
+    where
+    makeType :: Expr -> Expr -> Expr
+    makeType rt params = FN rt (Tuple $ map paramType params)
 
-getOpsAndExps :: Expr -> ([String],[Expr])
-getOpsAndExps (InfixCalls ops exps) = (ops,exps)
-getOpsAndEpxs tok                   = ([],[tok])
+  readMatch :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readMatch indent ln xs =
+    let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
+        (cl,ln1,xs1)  = readClauses readBindpat "->" ln0 filename xs0
+    in (Just $ ExprMatch exp cl,ln1,xs1)
 
-concatTuple :: Expr -> Expr -> Expr
-concatTuple t0 t1 = let l0 = tList t0
-                        l1 = tList t1
-                    in Tuple (l0 ++ l1)
+  readModify :: -> Int -> Int -> FilePath -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readModify indent ln filename xs =
+    let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
+        (cl,ln1,xs1)  = readCl ln0 xs0
+    in (Just $ ExprModify exp cl,ln1,xs1)
+    where
+    readCl :: Int -> [Lex] -> ([(CondExpr,Expr)], Int, [Lex])
+    readCl ln xs =
+      case get xs of
+        (_,Punct '(',xs0) -> let (mods,ln1,xs1) = readDelimiter ')' readModifier ln filename xs0
+                                 mods'          = transformModifier mods
+                             in (mods',ln1,xs1)
+        _                 -> let (mods,_,ln0,xs0) = readClauses False 
+                                                                (readClause False readSub "=")
+                                                                []
+                                                                indent
+                                                                ln
+                                                                filename
+                                                                xs
+                             in (mods,ln0,xs0)
+
+  readPure :: Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readPure ln xs =
+    let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
+    in (Just $ ExprPure exp,ln0,xs0)
+
+  readRange :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readRange indent ln xs =
+    let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
+        (ln1,xs1)     = readNewline ln0 filename xs0
+        (cl,ln1,xs1)  = readClauses indent readSub "->" ln0 filename xs0
+    in (Just $ ExprRange cl,ln1,xs1)
+
+  readSwitch :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readSwitch indent ln xs =
+    let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
+        (cl,ln1,xs1)  = readClauses indent readSub "->" ln0 filename xs0
+    in (Just $ ExprSwitch exp cl,ln1,xs1)
+
+  readTCase :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readTCase indent ln xs =
+    let (exp,ln0,xs0)    = readExpr Norm (Left 0) ln filename xs
+        (cl,ln1,xs1) = readClauses indent readType "->" ln0 filename xs0
+    in (Just $ ExprTCase exp cl,ln1,xs1)
+
+  readThe :: Expr -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readThe exp ln xs =
+    let (tp,ln0,xs0) = readAType ln filename xs
+    in (Just $ ExprThe tp exp,ln0,xs0)
+
+  readUntil :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readUntil indent ln xs =
+
+  readWhile :: Int -> Int -> [Lex] -> (Maybe Expr,Int,[Lex])
+  readWhile indent ln xs =
+
+transformModifier :: [Expr] -> [(Expr,Expr)]
+transformModifier (Modifier key exp:xs) = (key,exp) : transformModifier xs
+transformModifier []                    = []
 
 tList :: Expr -> [Expr]
 tList (Tuple tks) = tks
@@ -737,66 +710,17 @@ keywordTerminators = ["as","from","the","->","<-",">>"]
 punctTerminators :: [Char]
 punctTerminators = [',',')',']','}']
 
-readExpr1 :: ReadMode -> Int -> Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readExpr1 mode indent exp1 ln filename xs =
-  case get xs of
-    (_,Op s0,xs0)        -> if mode == SeqBuild && s0 == "|" then (exp1,ln,xs)
-                            else readExprOp1 exp1 s0 ln0 filename xs0
-    (_,Keyword "\\",xs0) -> let (exp2,ln0,xs0) = readExpr 0 (Left 0) ln filename xs0
-                            in (Funcall exp1 exp2,ln0,xs0)
-    (_,Keyword s,_)      -> if s `elem` keywordTerminators
-                            then (exp1,ln,xs)
-                            else goRead
-    (_,Punct '.',xs0)    -> let (exp2,ln1,xs1) = readSub ln0 filename xs0
-                            in readExpr1 mode indent (Funcall exp2 exp1) ln1 filename xs1
-    (_,Punct p,_)        -> if p `elem` punctTerminators
-                            then (exp1,ln,xs)
-                            else goRead
-    (_,SetLine ln0,xs0)  -> let (c,_,_) = get xs0
-                            in if c > indent then readExpr1 mode indent exp1 ln0 filename xs0
-                               else (exp1,ln,xs)
-    (_,EOF,_)            -> (exp1,ln,xs)
-    _                    -> goRead
-  where
-  goRead :: (Expr,Int,[Lex])
-  goRead = let (exp2,ln0,xs0) = readSub ln filename xs
-           in readExpr1 mode indent (Funcall exp1 exp2) ln0 filename xs0
-
-readFrom :: Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readFrom exp ln filename xs =
-  let (name,ln0,xs0) = readCap ln filename xs
-  in (From name exp, ln0, xs0)
-
 readCap :: Int -> FilePath -> [Lex] -> (String,[Lex])
 readCap ln filename xs = case get xs of
                             (_,Cap s,xs0) -> (s,xs0)
                             _             -> error' ln filename "Expected a cap name"
-
-readIf :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readIf indent ln filename xs =
-  let (cl,ln1,xs1) = readClauses indent (readExpr 0 (Left 0)) "->" ln0 filename (SetLine ln : xs0)
-  in (ExprIf cl,ln2,xs2)
 
 readOpenParen :: Int -> FilePath -> [Lex] -> [Lex]
 readOpenParen ln filename xs = case get xs of
                                  (_,Punct '(',ln0,xs0)) = xs0
                                  _                      = error' ln filename "Expected an open paren"
 
-readRange :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readRange indent ln filename xs =
-  let (exp,ln0,xs0) = readExpr 0 (Left 0) ln filename xs
-      (ln1,xs1)     = readNewline ln0 filename xs0
-      (cl,ln1,xs1)  = readClauses indent readSub "->" ln0 filename xs0
-  in (ifs,ln1,xs1)
-
-readCase :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readCase indent ln filename xs =
-  let (exp,ln0,xs0) = readExpr 0 (Left 0) ln filename xs
-      (ln1,xs1)     = readNewline ln0 filename xs0
-      (cl,ln1,xs1)  = readClauses indent (readExpr 0 (Left 0)) "->" ln1 filename xs1
-  in (make exp cl,ln1,xs1)
-
-readClauses :: Int -> ExprReader -> String -> Int -> FilePath -> [Lex] -> ([(Expr,Expr)],Int,[Lex])
+readClauses :: Int -> CondReader -> String -> Int -> FilePath -> [Lex] -> ([(Cond,Expr)],Int,[Lex])
 readClauses indent fn arrow ln filename xs = 
   let (cond,ln0,xs0) = fn ln filename xs
   in case get xs0 of
@@ -822,23 +746,6 @@ loopParamParam (LoopParam t n _) = Param t n
 loopParamArg :: Expr -> Expr
 loopParamArg (LoopParam _ _ a) = a
 
-readLoop :: String -> Int -> ExprReader
-readLoop name indent ln filename xs =
-  let (rt,ln0,xs0)  = readType ln filename xs
-      (ln1,xs1)      = readOpenParen ln0 filename xs0
-      (lps,ln2,xs2)  = readDelimiter ')' readLoopParam ln1 filename xs1
-      (ln3,xs3)      = readNewline ln2 filename xs2
-      (body,ln4,xs4) = readExpr [] (Left indent) ln3 filename xs3
-      params         = map loopParamParam lps
-      args           = Tuple $ map loopParamArg lps
-  in (Let [(makeType params, name, Function params body)]
-          (Funcall name args)
-    , ln4
-    , xs4)
-  where
-  makeType :: Expr -> Expr -> Expr
-  makeType rt params = FN rt (Tuple $ map paramType params)
-
 readLoopParam :: Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
 readLoopParam ln filename xs =
   let (tp,ln0,xs0)   = readType ln filename xs
@@ -847,77 +754,10 @@ readLoopParam ln filename xs =
       (exp,ln3,xs3)  = readExpr 0 (Left 0) ln2 filename xs2
   in (LoopParam tp name exp, ln3, xs3)
 
-readAs :: Expr -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readAs exp ln filename xs =
-  let (tp,ln0,xs0) = readType ln filename xs
-  in (As tp exp, ln0, xs0)
-
-readSwitch :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readSwitch indent ln filename xs =
-  let (exp,ln0,xs0) = readExpr Norm (Left 0) ln filename xs
-      (cl,ln1,xs1)  = readClauses indent readSub "->" ln0 filename xs0
-  in (Switch exp cl, ln1, xs1)
-
-readTCase :: Int -> Int -> FilePath -> [Lex] -> (Expr,Int,[Lex])
-readTCase indent ln filename xs =
-  let (exp,ln0,xs0)    = readExpr 0 (Left 0) ln filename xs
-      (cl,ln1,xs1) = readClauses indent readType "->" ln0 filename xs0
-  in (TCase exp cl, ln1, xs1)
-
 readName :: Int -> FilePath -> [Lex] -> (String,[Lex])
 readName ln filename xs = case get xs of
                             (_,LexName s,xs0) -> (s,xs0)
                             _                 -> error' ln filename "Expected a name"
-
-comesPunctM :: Char -> [Lex] -> Maybe [Lex]
-comesPunctM p xs = case get xs of
-                     (_,Punct p0,xs0) -> if p == p0 then Just xs0
-                                         else Nothing
-                     _                -> Nothing
-
-comesType :: [Lex] -> Bool
-comesType xs = isJust $ comesTypeM xs
-
-comesTypeM :: [Lex] -> (Maybe [Lex])
-comesTypeM xs = case get xs of
-                  (_,Cap _,xs0)     -> case comesTypeM xs0 of
-                                         Just xs1 -> Just xs1
-                                         Nothing  -> Just xs0
-                  (_,Punct '(',xs0) -> readDelimiterM xs0
-                  (_,Punct '[',xs0) -> comesTypeM xs0 >>= comesPunct ']'
-                  (_,Punct '{',xs0) -> comesTypeM xs0 >>= comesPunct '}'
-
-readDelimiterM :: [Lex] -> Maybe [Lex]
-readDelimiterM xs = case get xs of
-                      (_,Punct ')',xs0) -> Just xs0
-                      (_,SetLine _,xs0) -> let (c,_,_) = get xs0
-                                           in recNewline c xs0
-                      (c,_,_)           -> case comesTypeM xs of
-                                             Just xs0 -> case get xs0 of
-                                                           (_,Punct ')',xs1) -> Just xs1
-                                                           (_,Punct ',',xs1) -> recComma xs1
-                                                           (_,SetLine _,xs1) -> recNewline c xs1
-                                                           _                 -> Nothing
-                                             Nothing  -> Nothing
-  where
-  recComma :: [Lex] -> Maybe [Lex]
-  recComma xs = case comesTypeM xs of
-                  Just xs0 -> case get xs0 of
-                                (_,Punct ')',xs1) -> Just xs1
-                                (_,Punct ',',xs1) -> recComma xs1
-                                _                 -> Nothing
-                  Nothing  -> Nothing
-  recNewline :: Int -> [Lex] -> Maybe [Lex]
-  recNewline indent xs = case get xs of
-                           (_,Punct ')',xs0) -> Just xs0
-                           (c,_,_)           -> if c == indent
-                                                then case comesTypeM xs of
-                                                       Just xs0 -> case get xs0 of
-                                                                     (_,Punct ')',xs1) -> Just xs1
-                                                                     (_,SetLine _,xs1) -> recNewline indent xs1
-                                                                     _                 -> Nothing
-                                                       Nothing  -> Nothing
-                                                else Nothing
 
 readEndSquare :: Int -> FilePath -> [Lex] -> [Lex]
 readEndSquare ln filename xs = case get xs of
@@ -1011,6 +851,100 @@ readDelimiterNewline indent end fn ln filename xs =
                                         else error' ln0 filename "Expected newline or end punctuation"
                    (_,SetLine _,xs1) -> readDelimiterNewline indent end fn ln1 filename xs1
          else error' ln filename "Bad indentation"
+
+readAType :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
+readAType ln filename xs
+  | comesType xs = let (mems,ln0,xs0) = readTypeMembers ln filename xs
+                       tp | length mems == 1 = head mems
+                          | otherwise        = UN mems
+                   in (tp,ln0,xs0)
+  | otherwise    = (DR,ln,xs)
+
+readTypeSubSub :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
+readTypeSubSub ln filename xs =
+  case get xs of
+    (_,Cap name,xs0)    -> let (arg,ln1,xs1) | comesType xs0 = readTypeSubSub ln xs0
+                                             | otherwise     = (TU [],ln,xs0)
+                               args = tList arg
+                           in (NM name args,ln1,xs1)
+    (_,LexAll s,xs0)    -> (TypeVar s,ln,xs0)
+    (_,Punct '(',xs0)   -> let (tps,ln1,xs1) = readDelimiter ')' readType ln filename xs0
+                           in (TU tps,ln1,xs1)
+    (_,Punct '[',xs0)   -> let (tp,ln1,xs1) = readType ln filename xs0
+                               (ln2,xs2)    = readEndSquare ln1 filename xs1
+                           in (NM "Array" [tp], ln2, xs2)
+    (_,Punct '{',xs0)   -> let (tp,ln1,xs1) = readType ln filename xs0
+                               (ln2,xs2)    = readEndBracket ln1 filename xs1
+                           in (NM "List" [tp],ln2,xs2)
+    _                   -> error' ln filename "Expected a type"
+
+readTypeSub :: Int -> FilePath -> [Lex] -> (Type,Int,[Lex])
+readTypeSub ln filename xs =
+  let (t0,ln0,xs0) = readTypeSubSub ln filename xs
+  in case get xs of
+       (_,Keyword "<-",xs1) -> let (t1,ln2,xs2) = readTypeSub ln0 filename xs1
+                               in (FN t0 t1,ln2,xs2)
+       (_,Keyword "<<",xs1) -> let (t1,ln2,xs2) = readTypeSub ln0 filename xs1
+                               in (AC t0 t1,ln2,xs2)
+       _                    -> (t0,ln,xs)
+
+readTypeMembers :: Int -> FilePath -> [Lex] -> ([Type], Int, [Lex])
+readTypeMembers ln filename xs =
+  let (t0,ln0,xs0) = readTypeSub ln filename xs
+  in case get xs0 of
+       (_,Op "|",xs1) -> let (rest,ln2,xs2) = readTypeMembers ln0 filename xs1
+                         in (t0 : rest,ln2,xs2)
+       _              -> ([t0],ln,xs)
+
+comesType :: [Lex] -> Bool
+comesType xs = isJust $ comesTypeM xs
+
+comesTypeM :: [Lex] -> (Maybe [Lex])
+comesTypeM xs = case get xs of
+                  (_,Cap _,xs0)     -> case comesTypeM xs0 of
+                                         Just xs1 -> Just xs1
+                                         Nothing  -> Just xs0
+                  (_,Punct '(',xs0) -> readDelimiterM xs0
+                  (_,Punct '[',xs0) -> comesTypeM xs0 >>= comesPunctM ']'
+                  (_,Punct '{',xs0) -> comesTypeM xs0 >>= comesPunctM '}'
+
+comesPunctM :: Char -> [Lex] -> Maybe [Lex]
+comesPunctM p xs = case get xs of
+                     (_,Punct p0,xs0) -> if p == p0 then Just xs0
+                                         else Nothing
+                     _                -> Nothing
+
+readDelimiterM :: [Lex] -> Maybe [Lex]
+readDelimiterM xs = case get xs of
+                      (_,Punct ')',xs0) -> Just xs0
+                      (_,SetLine _,xs0) -> let (c,_,_) = get xs0
+                                           in recNewline c xs0
+                      (c,_,_)           -> case comesTypeM xs of
+                                             Just xs0 -> case get xs0 of
+                                                           (_,Punct ')',xs1) -> Just xs1
+                                                           (_,Punct ',',xs1) -> recComma xs1
+                                                           (_,SetLine _,xs1) -> recNewline c xs1
+                                                           _                 -> Nothing
+                                             Nothing  -> Nothing
+  where
+  recComma :: [Lex] -> Maybe [Lex]
+  recComma xs = case comesTypeM xs of
+                  Just xs0 -> case get xs0 of
+                                (_,Punct ')',xs1) -> Just xs1
+                                (_,Punct ',',xs1) -> recComma xs1
+                                _                 -> Nothing
+                  Nothing  -> Nothing
+  recNewline :: Int -> [Lex] -> Maybe [Lex]
+  recNewline indent xs = case get xs of
+                           (_,Punct ')',xs0) -> Just xs0
+                           (c,_,_)           -> if c == indent
+                                                then case comesTypeM xs of
+                                                       Just xs0 -> case get xs0 of
+                                                                     (_,Punct ')',xs1) -> Just xs1
+                                                                     (_,SetLine _,xs1) -> recNewline indent xs1
+                                                                     _                 -> Nothing
+                                                       Nothing  -> Nothing
+                                                else Nothing
 
  -- Error
 
